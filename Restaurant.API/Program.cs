@@ -4,11 +4,11 @@ using Restaurant.Application.Contract;
 using Restaurant.Application.Interfaces;
 using Restaurant.Application.Services;
 using Restaurant.Domain.Entities;
-
 using Restaurant.Infrastructure.DbContext;
 using Restaurant.Infrastructure.Repository;
 using Restaurant.Infrastructure.UnitOfWork;
 using Restaurant.Infrastructure.Data;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Restaurant.API
 {
@@ -16,11 +16,21 @@ namespace Restaurant.API
     {
         public static async Task Main(string[] args)
         {
+            string RepacementDataFromFrondEnd = "";
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
             builder.Services.AddControllers();
             builder.Services.AddMemoryCache();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(RepacementDataFromFrondEnd, builder=>
+                {
+                    builder.AllowAnyOrigin();
+                    builder.AllowAnyMethod();
+                    builder.AllowAnyHeader();
+                });
+            });
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Database Configuration
@@ -74,10 +84,18 @@ namespace Restaurant.API
             {
                 options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
                 {
+             
                     Title = "Restaurant Management API",
-                    Version = "v1",
-                    Description = "API with JWT Authentication and Multilingual Support"
-                });
+                    Version = "v2",
+                    Description = "API with JWT Authentication and Multilingual Support",
+                    Contact = new Microsoft.OpenApi.Models.OpenApiContact
+                    {
+                        Name = "Ahmed Saber",
+                        Email = "ahmedsaberkh7@gmail.com"
+                    }
+                    ,
+                    TermsOfService = new Uri("https://microsoft.com/terms")
+                    });
 
                 // JWT Bearer Configuration for Swagger
                 options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -104,6 +122,10 @@ namespace Restaurant.API
                         Array.Empty<string>()
                     }
                 });
+            options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Restaurant.API.xml"));
+                // In the SwaggerGen configuration section, ensure the following line is present after adding the using directive above:
+                options.EnableAnnotations();
+
             });
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,6 +178,7 @@ namespace Restaurant.API
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseCors(RepacementDataFromFrondEnd);
 
             app.MapControllers();
             app.MapGet("/", () => Results.Redirect("/swagger"));
@@ -164,30 +187,3 @@ namespace Restaurant.API
         }
     }
 }
-
-// ============================================================================
-// appsettings.json - إضافة الإعدادات
-// ============================================================================
-/*
-{
-  "ConnectionStrings": {
-    "OnloneRestaurantDB": "Server=.;Database=RestaurantDB;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
-  },
-  "PasswordRequirements": {
-    "RequireConfirmedEmail": false,
-    "RequireDigit": true,
-    "MinimumLength": 6,
-    "RequireSpecialCharacter": true,
-    "RequireUppercase": true,
-    "RequireLowercase": true,
-    "RequireUniqueEmail": true
-  },
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "AllowedHosts": "*"
-}
-*/
