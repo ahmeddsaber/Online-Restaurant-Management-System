@@ -72,6 +72,9 @@ namespace Restaurant.API
             builder.Services.AddScoped<IOrderService,OrderService>();
             builder.Services.AddScoped<IOrderItemRepo, OrderItemRepository>();
             builder.Services.AddScoped<IOrderItemService,OrderItemService>();
+            builder.Services.AddScoped<ITableRepo, TableRepository>();
+            builder.Services.AddScoped<ITableService,TableService>();
+
 
 
 
@@ -122,7 +125,7 @@ namespace Restaurant.API
                         Array.Empty<string>()
                     }
                 });
-            options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "Restaurant.API.xml"));
+         
                 // In the SwaggerGen configuration section, ensure the following line is present after adding the using directive above:
                 options.EnableAnnotations();
 

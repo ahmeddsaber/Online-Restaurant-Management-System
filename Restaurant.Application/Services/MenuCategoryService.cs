@@ -22,6 +22,7 @@ namespace Restaurant.Application.Services
         {
             return _unitOfWork.MenuCategoryRepo.GetAll();
         }
+   
     }
 
 }

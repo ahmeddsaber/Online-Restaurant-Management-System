@@ -1,4 +1,5 @@
-﻿using Restaurant.Domain.Entities;
+﻿using Restaurant.Application.Contract.payment;
+using Restaurant.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,8 @@ namespace Restaurant.Application.Contract
         IMenuItemRepo MenuItem { get; }
         IOrderRepo Order { get; }   
         IOrderItemRepo OrderItem { get; }
+        IPaymentRepo Payment { get; }
+        ITableRepo Table { get; }
 
         Task<int> SaveChangesAsync();
         

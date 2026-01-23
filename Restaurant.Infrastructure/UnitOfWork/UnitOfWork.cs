@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Restaurant.Application.Contract;
+using Restaurant.Application.Contract.payment;
 using Restaurant.Domain.Entities;
 using Restaurant.Infrastructure.DbContext;
 using Restaurant.Infrastructure.Repository;
@@ -15,6 +16,8 @@ namespace Restaurant.Infrastructure.UnitOfWork
         private IMenuItemRepo _menuItemRepo;
         private IOrderRepo _orderRepo;
         private IOrderItemRepo orderItemRepo;
+        private ITableRepo _tableRepo;
+        IPaymentRepo _paymentRepo;
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
@@ -32,6 +35,8 @@ namespace Restaurant.Infrastructure.UnitOfWork
         public IMenuItemRepo MenuItem => _menuItemRepo ??= new MenuItemRepository(_context);
         public IOrderRepo Order => _orderRepo ??= new OrderRepository(_context);
         public IOrderItemRepo OrderItem => orderItemRepo ??= new OrderItemRepository(_context);
+        public ITableRepo Table => _tableRepo ??= new TableRepository(_context);
+        public IPaymentRepo Payment => _paymentRepo ??= new PaymentRepository(_context);
 
         // ============================
         // Generic Repository

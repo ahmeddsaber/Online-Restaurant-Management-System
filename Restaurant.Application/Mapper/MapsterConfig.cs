@@ -1,5 +1,5 @@
 ﻿using Mapster;
-using Restaurant.Application.DTOS.MenuItem;
+
 using Restaurant.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace Restaurant.Application.Mapper
 
         public static void Configure()
         {
-            TypeAdapterConfig<MenuItem, MenuItemDto>.NewConfig()
+            TypeAdapterConfig<MenuItem, MenuItem>.NewConfig()
            .Map(dest => dest.NameEn, src => src.NameEn)
             .Map(dest => dest.NameAr, src => src.NameAr)
             .TwoWays();

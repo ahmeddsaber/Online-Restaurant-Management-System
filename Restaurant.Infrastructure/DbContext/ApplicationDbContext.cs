@@ -24,16 +24,67 @@ namespace Restaurant.Infrastructure.DbContext
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Table> Tables { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Payment>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.TransactionId)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.PaymentMethod)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.Amount)
+                    .IsRequired()
+                    .HasPrecision(18, 2);
+
+                entity.Property(e => e.Currency)
+                    .IsRequired()
+                    .HasMaxLength(3)
+                    .HasDefaultValue("EGP");
+
+                entity.Property(e => e.Status)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.PaymentIntentId)
+                    .HasMaxLength(200);
+
+                entity.Property(e => e.ReceiptUrl)
+                    .HasMaxLength(500);
+
+                entity.HasOne(p => p.Order)
+                    .WithMany()
+                    .HasForeignKey(p => p.OrderId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(e => e.TransactionId)
+                    .IsUnique()
+                    .HasDatabaseName("IX_Payment_TransactionId");
+
+                entity.HasIndex(e => e.OrderId)
+                    .HasDatabaseName("IX_Payment_OrderId");
+
+                entity.HasIndex(e => e.Status)
+                    .HasDatabaseName("IX_Payment_Status");
+            });
+
+            modelBuilder.Entity<Payment>().HasQueryFilter(e => !e.IsDeleted);
 
             // ============================================================================
             // MenuCategory Configuration
             // ============================================================================
             modelBuilder.Entity<MenuCategory>(entity =>
             {
+
+
                 entity.HasKey(e => e.Id);
 
                 entity.Property(e => e.NameEn)

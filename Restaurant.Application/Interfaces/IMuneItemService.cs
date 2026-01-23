@@ -1,4 +1,4 @@
-﻿using Restaurant.Application.DTOS.MenuItem;
+﻿
 using Restaurant.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,6 @@ namespace Restaurant.Application.Interfaces
 {
     public interface IMenuItemService
     {
-        Task<IEnumerable<MenuItemDto>> GetAllMenuItemsAsync();
+        Task<IEnumerable<MenuItem>> GetAllMenuItemsAsync();
     }
 }

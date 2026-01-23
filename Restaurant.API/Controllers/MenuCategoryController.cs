@@ -17,6 +17,9 @@ namespace Restaurant.API.Controllers
         }
 
         [HttpGet]
+        [Route("GetMenuCategories")]
+        [Consumes("application/json")]
+        [Produces("application/json")]
         public IActionResult GetMenuCategories()
         {
             var menuCategories = _menuCategoryService.GetAllCategories();
