@@ -1,8 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Restaurant.Application.Contract;
+using Restaurant.Application.DTOS.Manager;
 using Restaurant.Domain.Entities;
 using Restaurant.Infrastructure.DbContext;
-using System.Threading;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Restaurant.Infrastructure.Repository
 {
@@ -17,21 +21,20 @@ namespace Restaurant.Infrastructure.Repository
             _context = context;
         }
 
-        // 🔍 Search by Arabic OR English name
-        public async Task<MenuCategory?> SearchAsync(string? name)
+        public async Task<IEnumerable<MenuCategory>> SearchAsync(string? name)
         {
             if (string.IsNullOrWhiteSpace(name))
-                return null;
+                return new List<MenuCategory>();
 
             return await _context.MenuCategories
                 .AsNoTracking()
-                .Where(c =>
-                    c.NameEn.Contains(name) ||
-                    c.NameAr.Contains(name))
-                .FirstOrDefaultAsync();
+                .Where(c => !c.IsDeleted &&
+                            ((c.NameEn != null && c.NameEn.Contains(name)) ||
+                             (c.NameAr != null && c.NameAr.Contains(name))))
+                .ToListAsync();
         }
 
-        // 📦 Category with active menu items only
+
         public async Task<MenuCategory?> GetCategoryByIdWithItemsAsync(int id)
         {
             return await _context.MenuCategories
@@ -41,30 +44,24 @@ namespace Restaurant.Infrastructure.Repository
                 .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
         }
 
-        // 📋 Only categories that have available menu items
-        public async Task<List<MenuCategory>> GetActiveCategoriesAsync()
+        public async Task<IEnumerable<MenuCategory>> GetActiveCategoriesAsync()
         {
             return await _context.MenuCategories
                 .AsNoTracking()
                 .Where(c =>
                     !c.IsDeleted &&
                     c.MenuItems.Any(i => i.IsAvailable && !i.IsDeleted))
-                .Include(c => c.MenuItems.Where(i => i.IsAvailable))
+                .Include(c => c.MenuItems.Where(i => i.IsAvailable && !i.IsDeleted))
                 .ToListAsync();
         }
 
-        public async Task<MenuCategory?> Search(string? name)
+        public async Task<IEnumerable<MenuCategory>> GetDeletedCategoriesAsync()
         {
-            if (string.IsNullOrWhiteSpace(name))
-                return null;
-
             return await _context.MenuCategories
                 .AsNoTracking()
-                .Where(c => c.NameEn.Contains(name) || c.NameAr.Contains(name))
-                .FirstOrDefaultAsync();
+                .Where(c => c.IsDeleted)
+                .ToListAsync();
         }
-
-
 
         public async Task<IEnumerable<MenuCategory>> GetAllCategoriesAsync()
         {
@@ -73,6 +70,51 @@ namespace Restaurant.Infrastructure.Repository
                 .Where(c => !c.IsDeleted)
                 .ToListAsync();
         }
-      
+
+        public async Task<IEnumerable<CategorySalesDto>> GetCategorySalesAsync()
+        {
+            var categorySales = await _context.MenuCategories
+                .Where(c => !c.IsDeleted)
+                .Select(c => new CategorySalesDto
+                {
+                    CategoryNameEn = c.NameEn,
+                    CategoryNameAr = c.NameAr,
+
+                    ItemsSold = c.MenuItems
+                        .Where(mi => !mi.IsDeleted)
+                        .SelectMany(mi => mi.OrderItems)
+                        .Where(oi => !oi.IsDeleted)
+                        .Sum(oi => oi.Quantity),
+
+                    Revenue = c.MenuItems
+                        .Where(mi => !mi.IsDeleted)
+                        .SelectMany(mi => mi.OrderItems)
+                        .Where(oi => !oi.IsDeleted)
+                        .Sum(oi => oi.UnitPrice * oi.Quantity)
+                })
+                .ToListAsync();
+
+            var totalRevenue = categorySales.Sum(c => c.Revenue);
+
+            foreach (var item in categorySales)
+            {
+                item.Percentage = totalRevenue == 0
+                    ? 0
+                    : Math.Round((item.Revenue / totalRevenue) * 100, 2);
+            }
+
+            return categorySales;
+        }
+
+        public  async Task<IEnumerable<MenuCategory>> GetActiveCategoriesforCustomerAsync()
+        {
+            return await _context.MenuCategories
+                .AsNoTracking()
+                .Where(c =>
+                    !c.IsDeleted &&
+                    c.MenuItems.Any(i => i.IsAvailable && !i.IsDeleted))
+                .Include(c => c.MenuItems.Where(i => i.IsAvailable && !i.IsDeleted))
+                .ToListAsync();
+        }
     }
 }

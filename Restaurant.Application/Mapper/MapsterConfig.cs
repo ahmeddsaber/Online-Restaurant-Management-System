@@ -1,5 +1,5 @@
 ﻿using Mapster;
-
+using Restaurant.Application.DTOS.Admin;
 using Restaurant.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,11 @@ namespace Restaurant.Application.Mapper
 
         public static void Configure()
         {
+            TypeAdapterConfig<MenuCategory, AdminCategoryDto>.NewConfig()
+    .Map(dest => dest.MenuItemsCount, src => src.MenuItems.Count)
+    .Map(dest => dest.AvailableItemsCount,
+         src => src.MenuItems.Count(m => m.IsAvailable && !m.IsDeleted));
+
             TypeAdapterConfig<MenuItem, MenuItem>.NewConfig()
            .Map(dest => dest.NameEn, src => src.NameEn)
             .Map(dest => dest.NameAr, src => src.NameAr)
