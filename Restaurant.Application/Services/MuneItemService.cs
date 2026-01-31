@@ -22,9 +22,8 @@ namespace Restaurant.Application.Services
 
 
 
-            return await Task.FromResult(items); // لو DbContext مش async
-            // لو DbContext من EF Core:
-            // return await items.ToListAsync();
+            return await Task.FromResult(items); 
+            
         }
     }
 }
