@@ -18,6 +18,7 @@ namespace Restaurant.Infrastructure.Repository
         public async Task<IEnumerable<MenuItem>> GetAllItems()
         {
             return await _context.MenuItems
+                .AsNoTracking()
                 .Where(m => !m.IsDeleted)
                 .Include(m => m.Category)
                 .ToListAsync();
@@ -26,28 +27,38 @@ namespace Restaurant.Infrastructure.Repository
         public async Task<IEnumerable<MenuItem>> GetItemsByPriceRange(decimal minPrice, decimal maxPrice)
         {
             return await _context.MenuItems
-                .Where(m => !m.IsDeleted && m.Price >= minPrice && m.Price <= maxPrice)
+                .AsNoTracking()
+                .Where(m =>
+                    !m.IsDeleted &&
+                    m.Price >= minPrice &&
+                    m.Price <= maxPrice)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<MenuItem>> SearchItemsByName(string name)
         {
             return await _context.MenuItems
-                .Where(m => !m.IsDeleted &&
-                       (m.NameEn.Contains(name) || m.NameAr.Contains(name)))
+                .AsNoTracking()
+                .Where(m =>
+                    !m.IsDeleted &&
+                    (m.NameEn.Contains(name) || m.NameAr.Contains(name)))
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<MenuItem>> GetItemsWithPreparationTimeLessThan(int minutes)
         {
             return await _context.MenuItems
-                .Where(m => !m.IsDeleted && m.PreparationTime <= minutes)
+                .AsNoTracking()
+                .Where(m =>
+                    !m.IsDeleted &&
+                    m.PreparationTime <= minutes)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<MenuItem>> GetItemsWithCategory()
         {
             return await _context.MenuItems
+                .AsNoTracking()
                 .Where(m => !m.IsDeleted)
                 .Include(m => m.Category)
                 .ToListAsync();
@@ -55,7 +66,9 @@ namespace Restaurant.Infrastructure.Repository
 
         public async Task<IEnumerable<MenuItem>> GetItemsSortedByPrice(bool ascending)
         {
-            var query = _context.MenuItems.Where(m => !m.IsDeleted);
+            var query = _context.MenuItems
+                .AsNoTracking()
+                .Where(m => !m.IsDeleted);
 
             return ascending
                 ? await query.OrderBy(m => m.Price).ToListAsync()
@@ -64,7 +77,9 @@ namespace Restaurant.Infrastructure.Repository
 
         public async Task<IEnumerable<MenuItem>> GetItemsSortedByPreparationTime(bool ascending)
         {
-            var query = _context.MenuItems.Where(m => !m.IsDeleted);
+            var query = _context.MenuItems
+                .AsNoTracking()
+                .Where(m => !m.IsDeleted);
 
             return ascending
                 ? await query.OrderBy(m => m.PreparationTime).ToListAsync()
@@ -76,35 +91,48 @@ namespace Restaurant.Infrastructure.Repository
             var date = DateTime.UtcNow.AddDays(-days);
 
             return await _context.MenuItems
-                .Where(m => !m.IsDeleted && m.CreatedAt >= date)
+                .AsNoTracking()
+                .Where(m =>
+                    !m.IsDeleted &&
+                    m.CreatedAt >= date)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<MenuItem>> GetAvailableItems()
         {
             return await _context.MenuItems
-                .Where(m => !m.IsDeleted && m.IsAvailable)
+                .AsNoTracking()
+                .Where(m =>
+                    !m.IsDeleted &&
+                    m.IsAvailable)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<MenuItem>> GetNotAvailableItems()
         {
             return await _context.MenuItems
-                .Where(m => !m.IsDeleted && !m.IsAvailable)
+                .AsNoTracking()
+                .Where(m =>
+                    !m.IsDeleted &&
+                    !m.IsAvailable)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<MenuItem>> GetItemsforCustomer()
         {
             return await _context.MenuItems
-                .Where(m => !m.IsDeleted && m.IsAvailable)
+                .AsNoTracking()
+                .Where(m =>
+                    !m.IsDeleted &&
+                    m.IsAvailable)
                 .Include(m => m.Category)
                 .ToListAsync();
         }
 
-        public async Task<MenuItem> TopSellingItemDto()
+        public async Task<MenuItem?> TopSellingItemDto()
         {
             return await _context.MenuItems
+                .AsNoTracking()
                 .Where(m => !m.IsDeleted)
                 .OrderByDescending(m => m.DailyOrderCount)
                 .FirstOrDefaultAsync();
