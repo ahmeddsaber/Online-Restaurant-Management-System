@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace Restaurant.Domain.Entities
 {
@@ -16,6 +12,8 @@ namespace Restaurant.Domain.Entities
         public bool IsAvailable { get; set; } = true;
         public int PreparationTime { get; set; } // in minutes
         public int DailyOrderCount { get; set; }
+        
+        public IFormFile? ImageFile { get; set; }
         public string? ImageUrl { get; set; }
         public int CategoryId { get; set; }
 

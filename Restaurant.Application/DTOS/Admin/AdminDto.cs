@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -147,8 +149,10 @@ public class AdminCreateCategoryDto
     [StringLength(500)]
     public string? DescriptionAr { get; set; }
 
-    public string? ImageUrl { get; set; }
-    public int DisplayOrder { get; set; }
+        [NotMapped]
+        [Display(Name = "Upload Image")]
+        public IFormFile? ImageFile { get; set; }
+        public int DisplayOrder { get; set; }
     public bool IsActive { get; set; } = true;
 }
 
@@ -171,8 +175,10 @@ public class AdminUpdateCategoryDto
     [StringLength(500)]
     public string? DescriptionAr { get; set; }
 
-    public string? ImageUrl { get; set; }
-    public int DisplayOrder { get; set; }
+        [NotMapped]
+        [Display(Name = "Upload Image")]
+        public IFormFile? ImageFile { get; set; }
+        public int DisplayOrder { get; set; }
     public bool IsActive { get; set; }
 }
 
@@ -221,8 +227,10 @@ public class AdminCreateMenuItemDto
 
     [Required]
     public int CategoryId { get; set; }
-
-    public string? ImageUrl { get; set; }
+        [NotMapped]
+        [Display(Name = "Upload Image")]
+        public IFormFile? ImageFile { get; set; }
+      
     public bool IsAvailable { get; set; } = true;
 }
 
@@ -256,8 +264,10 @@ public class AdminUpdateMenuItemDto
     [Required]
     public int CategoryId { get; set; }
 
-    public string? ImageUrl { get; set; }
-    public bool IsAvailable { get; set; }
+        [NotMapped]
+        [Display(Name = "Upload Image")]
+        public IFormFile? ImageFile { get; set; }
+        public bool IsAvailable { get; set; }
 }
 
 public class AdminMenuItemDto

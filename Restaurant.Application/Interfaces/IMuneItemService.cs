@@ -13,9 +13,9 @@ namespace Restaurant.Application.Interfaces
 {
     public interface IMenuItemService
     {
-        Task<IEnumerable<AdminMenuItemDto>> GetAllMenuItemsAsync();
-        public Task<IEnumerable<AdminMenuItemDto>> GetAllItems();
-        public Task<IEnumerable<CustomerMenuItemDto>> GetItemsByPriceRange(decimal minPrice, decimal maxPrice);
+        Task<IEnumerable<AdminMenuItemDto>> GetAllMenuItemsAsyncForAdmin();
+        public Task<IEnumerable<AdminMenuItemDto>> GetAllItemsForAdmin();
+        public Task<IEnumerable<CustomerMenuItemDto>> GetItemsByPriceRangeForCustomer(decimal minPrice, decimal maxPrice);
         public Task<IEnumerable<AdminMenuItemDto>> SearchItemsByNameforAdmin(string name);
         public Task<IEnumerable<CustomerMenuItemDto>> SearchItemsByNameforCustomer(string name);
         public Task<IEnumerable<CustomerMenuItemDto>> GetItemsWithPreparationTimeLessThan(int minutes);

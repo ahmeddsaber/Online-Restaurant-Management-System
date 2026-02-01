@@ -53,13 +53,13 @@ namespace Restaurant.Application.Services
 
         // ===================== Queries =====================
 
-        public async Task<IEnumerable<AdminMenuItemDto>> GetAllMenuItemsAsync()
+        public async Task<IEnumerable<AdminMenuItemDto>> GetAllMenuItemsAsyncForAdmin()
             => (await _unitOfWork.MenuItem.GetAllItems()).Select(MapToAdmin);
 
-        public async Task<IEnumerable<AdminMenuItemDto>> GetAllItems()
-            => await GetAllMenuItemsAsync();
+        public async Task<IEnumerable<AdminMenuItemDto>> GetAllItemsForAdmin()
+            => await GetAllMenuItemsAsyncForAdmin();
 
-        public async Task<IEnumerable<CustomerMenuItemDto>> GetItemsByPriceRange(decimal minPrice, decimal maxPrice)
+        public async Task<IEnumerable<CustomerMenuItemDto>> GetItemsByPriceRangeForCustomer(decimal minPrice, decimal maxPrice)
         {
             Guard.AgainstInvalidRange(minPrice, maxPrice);
             return (await _unitOfWork.MenuItem.GetItemsByPriceRange(minPrice, maxPrice))
@@ -181,7 +181,7 @@ namespace Restaurant.Application.Services
                 Price = dto.Price,
                 PreparationTime = dto.PreparationTime,
                 CategoryId = dto.CategoryId,
-                ImageUrl = dto.ImageUrl,
+                ImageFile = dto.ImageFile,
                 IsAvailable = dto.IsAvailable
             };
 
@@ -207,7 +207,7 @@ namespace Restaurant.Application.Services
             item.Price = dto.Price;
             item.PreparationTime = dto.PreparationTime;
             item.CategoryId = dto.CategoryId;
-            item.ImageUrl = dto.ImageUrl;
+            item.ImageFile = dto.ImageFile;
             item.IsAvailable = dto.IsAvailable;
 
             _unitOfWork.MenuItem.Update(item);
