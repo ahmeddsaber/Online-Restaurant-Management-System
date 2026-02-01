@@ -128,7 +128,7 @@ namespace Restaurant.API.Controllers
         [Produces("application/json")]
         [HttpGet("not-available")]
         [ActionName("GetNotAvailableMenuItems")]
-       public async Task<IActionResult> GetNotAvailableMenuItems()
+        public async Task<IActionResult> GetNotAvailableMenuItems()
         {
             var menuItems = await muneItemService.GetNotAvailableItems();
             if (menuItems == null || !menuItems.Any())
@@ -146,14 +146,77 @@ namespace Restaurant.API.Controllers
             return Ok(menuItems);
         }
         [Produces("application/json")]
-        [HttpGet("added-in-last-{days}-days")]  
-        [ActionName("GetMenuItemsAddedInLastNDays")]
+        [HttpGet("added-in-last-{days}-days")]
+        [ActionName("GetMenuItemsAddedInLastNDaysForCustomer")]
         public async Task<IActionResult> GetMenuItemsAddedInLastNDays(int days)
         {
             var menuItems = await muneItemService.GetItemsAddedInLastNDaysForCustomer(days);
             if (menuItems == null || !menuItems.Any())
             {
                 return NotFound("No menu items found added in last " + days + " days.");
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Unauthorized();
+            }
+            return Ok(menuItems);
+        }
+        [Produces("application/json")]
+        [HttpGet("GetitemByPriceRange")]
+        [ActionName("GetItemsByPriceRangeForCustomer")]
+        public async Task<IActionResult> GetItemsByPriceRange([FromQuery] decimal minPrice = 50, [FromQuery] decimal maxPrice = 100)
+        {
+            var menuItems = await muneItemService.GetItemsByPriceRangeForCustomer(minPrice, maxPrice);
+            if (menuItems == null || !menuItems.Any())
+            {
+                return NotFound("No menu items found in the specified price range.");
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Unauthorized();
+            }
+            return Ok(menuItems);
+        }
+
+        [Produces("application/json")]
+        [HttpGet("search/{name}")]
+        [ActionName("SearchItemsByNameforCustomer")]
+        public async Task<IActionResult> SearchItemsByNameforCustomer(string name)
+        {
+            var menuItems = await muneItemService.SearchItemsByNameforCustomer(name);
+            if (menuItems == null || !menuItems.Any())
+            {
+                return NotFound("No menu items found matching the name: " + name);
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Unauthorized();
+            }
+            return Ok(menuItems);
+        }
+
+
+        [Produces("application/json")]
+        [HttpGet("preparation-time/{minutes}")]
+        [ActionName("GetItemsWithPreparationTimeLessThanForCustomer")]
+        public async Task<IActionResult> GetItemsWithPreparationTimeLessThan(int minutes)
+        {
+            var menuItems = await muneItemService.GetItemsWithPreparationTimeLessThan(minutes);
+            if (menuItems == null || !menuItems.Any())
+            {
+                return NotFound("No menu items found with preparation time less than " + minutes + " minutes.");
             }
             if (!ModelState.IsValid)
             {
