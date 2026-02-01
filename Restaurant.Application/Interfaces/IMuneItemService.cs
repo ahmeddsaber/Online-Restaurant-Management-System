@@ -19,8 +19,7 @@ namespace Restaurant.Application.Interfaces
         public Task<IEnumerable<AdminMenuItemDto>> SearchItemsByNameforAdmin(string name);
         public Task<IEnumerable<CustomerMenuItemDto>> SearchItemsByNameforCustomer(string name);
         public Task<IEnumerable<CustomerMenuItemDto>> GetItemsWithPreparationTimeLessThan(int minutes);
-        public Task<IEnumerable<AdminMenuItemDto>> GetItemsWithCategory();
-        public Task<IEnumerable<CustomerMenuItemDto>> GetItemsWithCategoryForCustomer();
+     
         public Task<IEnumerable<CustomerMenuItemDto>> GetItemsSortedByPrice(bool ascending);
         public Task<IEnumerable<CustomerMenuItemDto>> GetItemsSortedByPreparationTime(bool ascending);
         public Task<IEnumerable<AdminMenuItemDto>> GetItemsAddedInLastNDays(int days);

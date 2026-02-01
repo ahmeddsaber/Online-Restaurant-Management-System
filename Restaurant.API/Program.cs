@@ -89,7 +89,7 @@ namespace Restaurant.API
                 {
              
                     Title = "Restaurant Management API",
-                    Version = "v2",
+                    Version = "v1",
                     Description = "API with JWT Authentication and Multilingual Support",
                     Contact = new Microsoft.OpenApi.Models.OpenApiContact
                     {

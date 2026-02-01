@@ -87,11 +87,7 @@ namespace Restaurant.Application.Services
                 .Select(MapToCustomer);
         }
 
-        public async Task<IEnumerable<AdminMenuItemDto>> GetItemsWithCategory()
-            => (await _unitOfWork.MenuItem.GetItemsWithCategory()).Select(MapToAdmin);
 
-        public async Task<IEnumerable<CustomerMenuItemDto>> GetItemsWithCategoryForCustomer()
-            => (await _unitOfWork.MenuItem.GetItemsWithCategory()).Select(MapToCustomer);
 
         public async Task<IEnumerable<CustomerMenuItemDto>> GetItemsSortedByPrice(bool ascending)
             => (await _unitOfWork.MenuItem.GetItemsSortedByPrice(ascending))

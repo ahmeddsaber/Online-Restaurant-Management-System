@@ -15,7 +15,7 @@ namespace Restaurant.Domain.Entities
         public string NameAr { get; set; } = string.Empty;
         public string? DescriptionEn { get; set; }
         public string? DescriptionAr { get; set; }
-        
+        [NotMapped]
         public IFormFile? ImageFile { get; set; }
         public string? ImageUrl { get; set; }
         public int DisplayOrder { get; set; }

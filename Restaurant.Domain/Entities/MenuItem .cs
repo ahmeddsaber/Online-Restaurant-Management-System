@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Restaurant.Domain.Entities
 {
@@ -12,7 +13,7 @@ namespace Restaurant.Domain.Entities
         public bool IsAvailable { get; set; } = true;
         public int PreparationTime { get; set; } // in minutes
         public int DailyOrderCount { get; set; }
-        
+        [NotMapped]
         public IFormFile? ImageFile { get; set; }
         public string? ImageUrl { get; set; }
         public int CategoryId { get; set; }
