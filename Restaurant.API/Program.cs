@@ -178,7 +178,11 @@ namespace Restaurant.API
                 });
             }
 
-            app.UseHttpsRedirection();
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
+
 
             app.UseCors(AllowAllCors);
             app.UseAuthentication();
