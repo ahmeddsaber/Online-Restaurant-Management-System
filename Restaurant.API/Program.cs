@@ -16,7 +16,8 @@ namespace Restaurant.API
     {
         public static async Task Main(string[] args)
         {
-            string RepacementDataFromFrondEnd = "";
+            string AllowAllCors = "AllowAll";
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -24,7 +25,7 @@ namespace Restaurant.API
             builder.Services.AddMemoryCache();
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy(RepacementDataFromFrondEnd, builder=>
+                options.AddPolicy(AllowAllCors, builder=>
                 {
                     builder.AllowAnyOrigin();
                     builder.AllowAnyMethod();
@@ -179,9 +180,9 @@ namespace Restaurant.API
 
             app.UseHttpsRedirection();
 
+            app.UseCors(AllowAllCors);
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseCors(RepacementDataFromFrondEnd);
 
             app.MapControllers();
             app.MapGet("/", () => Results.Redirect("/swagger"));

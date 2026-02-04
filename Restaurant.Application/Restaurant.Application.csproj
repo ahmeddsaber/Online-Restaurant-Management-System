@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Mapster" Version="7.4.0" />
-    <PackageReference Include="Microsoft.IdentityModel" Version="7.0.0" />
+   
     <PackageReference Include="Stripe.net" Version="50.2.0" />
   </ItemGroup>
 

@@ -43,7 +43,7 @@ namespace Restaurant.Infrastructure.Repository
             var entity = await _dbSet.FindAsync(id);
             if (entity == null)
             {
-                return null;
+               throw new KeyNotFoundException($"Entity with id {id} not found.");
             }
             entity.IsDeleted = true;
             _dbSet.Update(entity);

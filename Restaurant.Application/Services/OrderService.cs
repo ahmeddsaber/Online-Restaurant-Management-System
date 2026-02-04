@@ -20,9 +20,6 @@ namespace Restaurant.Application.Services
         {
             return unitOfWork.Order.GetAllOrder();
         }
-        public  async Task<IQueryable<Order>> GetAllOrders1()
-        {
-            return  unitOfWork.Order.GetAll();
-        }
+        
     }
 }

@@ -12,12 +12,12 @@ namespace Restaurant.Infrastructure.UnitOfWork
         private readonly ApplicationDbContext _context;
         private readonly Dictionary<Type, object> _repositories;
 
-        private IMenuCategoryRepo _menuCategoryRepo;
-        private IMenuItemRepo _menuItemRepo;
-        private IOrderRepo _orderRepo;
-        private IOrderItemRepo orderItemRepo;
-        private ITableRepo _tableRepo;
-        IPaymentRepo _paymentRepo;
+        private IMenuCategoryRepo? _menuCategoryRepo;
+        private IMenuItemRepo? _menuItemRepo;
+        private IOrderRepo? _orderRepo;
+        private IOrderItemRepo? _orderItemRepo;
+        private ITableRepo? _tableRepo;
+        private IPaymentRepo? _paymentRepo;
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
@@ -34,7 +34,7 @@ namespace Restaurant.Infrastructure.UnitOfWork
 
         public IMenuItemRepo MenuItem => _menuItemRepo ??= new MenuItemRepository(_context);
         public IOrderRepo Order => _orderRepo ??= new OrderRepository(_context);
-        public IOrderItemRepo OrderItem => orderItemRepo ??= new OrderItemRepository(_context);
+        public IOrderItemRepo OrderItem => _orderItemRepo ??= new OrderItemRepository(_context);
         public ITableRepo Table => _tableRepo ??= new TableRepository(_context);
         public IPaymentRepo Payment => _paymentRepo ??= new PaymentRepository(_context);
 

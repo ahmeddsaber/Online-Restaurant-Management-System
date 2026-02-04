@@ -126,9 +126,12 @@ namespace Restaurant.Application.Services
         public async Task<TopItemDto> TopSellingItemDto()
         {
             var item = await _unitOfWork.MenuItem.TopSellingItemDto();
-            if (item == null) return null;
+            if (item == null)
+            {
+                throw new NotFoundException("No menu items found");
+            }
 
-            return new TopItemDto
+                return new TopItemDto
             {
                 ItemNameEn = item.NameEn,
                 ItemNameAr = item.NameAr,

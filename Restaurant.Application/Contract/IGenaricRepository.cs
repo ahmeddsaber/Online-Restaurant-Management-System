@@ -10,7 +10,7 @@ namespace Restaurant.Application.Contract
     public interface IGenaricRepository<TEntity> where TEntity : BaseEntity
     {
 
-        IQueryable<TEntity> GetAll();
+        IQueryable<TEntity?> GetAll();
         Task<TEntity> GetById(int id);
         Task<TEntity> Create(TEntity entity);
         TEntity Update(TEntity entity);

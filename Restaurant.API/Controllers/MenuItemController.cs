@@ -28,10 +28,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+          
             return Ok(menuItems);
         }
         [HttpGet("GetAllMenuItemForCustomer")]
@@ -47,10 +44,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+          
             return Ok(menuItems);
         }
         [Produces("application/json")]
@@ -79,10 +73,7 @@ namespace Restaurant.API.Controllers
                 return BadRequest(ModelState);
 
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+         
 
             return Ok(menuItem);
         }
@@ -100,10 +91,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+           
             return Ok(topItem);
         }
         [Produces("application/json")]
@@ -120,10 +108,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+           
             return Ok(menuItems);
         }
         [Produces("application/json")]
@@ -140,10 +125,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+          
             return Ok(menuItems);
         }
         [Produces("Application/json")]
@@ -160,10 +142,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+
             return Ok(menuItems);
         }
 
@@ -181,10 +160,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+         
             return Ok(menuItems);
         }
         [Produces("Application/json")]
@@ -201,10 +177,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+         
             return Ok(menuItems);
         }
 
@@ -224,10 +197,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+         
             return Ok(menuItems);
         }
 
@@ -245,10 +215,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+          
             return Ok(menuItems);
         }
         [Produces("Application/json")]
@@ -266,10 +233,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+            
             return Ok(menuItems);
         }
 
@@ -288,10 +252,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+           
             return Ok(menuItems);
         }
         [Produces("application/json")]
@@ -308,10 +269,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+          
             return Ok(menuItems);
         }
         [Produces("application/json")]
@@ -328,10 +286,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
+           
             return Ok(menuItems);
         }
         [HttpPost("CreateMenuItem")]
@@ -410,14 +365,7 @@ namespace Restaurant.API.Controllers
             {
                 return BadRequest(ModelState);
             }
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized();
-            }
-            if (!User.IsInRole("Admin"))
-            {
-                return Forbid();
-            }
+            
             await muneItemService.DeleteMenuItem(id);
             return NoContent();
         }

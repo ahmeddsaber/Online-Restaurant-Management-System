@@ -93,7 +93,7 @@ namespace Restaurant.Application.Services
             return await _unitOfWork.MenuCategoryRepo.GetCategorySalesAsync();
         }
 
-        public async Task<IEnumerable<AdminCategoryDto>> SearchAdminCategory(string? name)
+        public async Task<IEnumerable<AdminCategoryDto?>> SearchAdminCategory(string? name)
         {
             var categories = await _unitOfWork.MenuCategoryRepo.SearchAsync(name);
             return categories.Adapt<IEnumerable<AdminCategoryDto>>();
