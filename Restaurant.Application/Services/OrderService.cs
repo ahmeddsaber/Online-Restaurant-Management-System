@@ -18,7 +18,7 @@ namespace Restaurant.Application.Services
         }
         public Task<IEnumerable<Order>> GetAllOrders()
         {
-            return unitOfWork.Order.GetAllOrder();
+            return unitOfWork.Order.GetAllOrdersAsync();
         }
         
     }

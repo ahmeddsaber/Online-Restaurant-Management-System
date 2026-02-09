@@ -33,8 +33,7 @@ namespace Restaurant.Application.DTOS.Customer
         public bool CanOrder { get; set; }
     }
 
-     { get; set; }
-// ========================================================================
+    // ========================================================================
     // ORDER
     // ========================================================================
 
@@ -49,7 +48,8 @@ namespace Restaurant.Application.DTOS.Customer
         public List<CreateOrderItemDto> Items { get; set; } = new();
 
         [StringLength(500)]
-        public string? DeliveryAddress
+        public string? DeliveryAddress { get; set; }
+
         [StringLength(1000)]
         public string? SpecialInstructions { get; set; }
 
