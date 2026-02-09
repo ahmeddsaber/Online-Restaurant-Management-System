@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Application.Contract
 {
-    public interface IOrderItemRepo:IGenaricRepository<OrderItem>
+    public interface IOrderItemRepo : IGenaricRepository<OrderItem>
     {
-        public Task<IEnumerable<OrderItem>> GetAllOrderItemsAsync();
-
-
+        Task<IEnumerable<OrderItem>> GetAllOrderItemsAsync();
+        Task<IEnumerable<OrderItem>> GetOrderItemsByOrderIdAsync(int orderId);
+        Task<OrderItem?> GetOrderItemByIdAsync(int orderItemId);
+        Task<bool> DeleteOrderItemAsync(int orderItemId);
     }
 }
