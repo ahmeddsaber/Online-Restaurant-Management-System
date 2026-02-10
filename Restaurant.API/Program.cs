@@ -22,7 +22,11 @@ namespace Restaurant.API
 
             // Add services to the container.
             builder.Services.AddControllers();
+
+            builder.Services.AddSignalR();
+
             builder.Services.AddMemoryCache();
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy(AllowAllCors, builder=>
