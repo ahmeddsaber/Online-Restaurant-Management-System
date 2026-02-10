@@ -152,7 +152,55 @@ namespace Restaurant.Infrastructure.Repository
                 return await _context.Orders
                     .CountAsync(o => o.Status == status);
             }
+
+        public async Task<IEnumerable<Order>> SearchForAdmin(string OrderNumber)
+        {
+            return await _context.Orders
+                    .Include(o => o.Customer)
+                    .Include(o => o.Table)
+                    .Include(o => o.OrderItems)
+                        .ThenInclude(oi => oi.MenuItem)
+                    .Where(o => o.OrderNumber==OrderNumber)
+                    .OrderByDescending(o => o.OrderDate)
+                    .ToListAsync();
         }
+
+        public  async Task<IEnumerable<Order>> SearchForManager(string OrderNumber)
+        {
+            return await _context.Orders
+                    .Include(o => o.Customer)
+                    .Include(o => o.Table)
+                    .Include(o => o.OrderItems)
+                        .ThenInclude(oi => oi.MenuItem)
+                   .Where(o => o.OrderNumber == OrderNumber)
+                    .OrderByDescending(o => o.OrderDate)
+                    .ToListAsync();
+        }
+
+        public  async Task<IEnumerable<Order>> SearchForStaff(string OrderNumber)
+        {
+            return await _context.Orders
+                       .Include(o => o.Customer)
+                       .Include(o => o.Table)
+                       .Include(o => o.OrderItems)
+                           .ThenInclude(oi => oi.MenuItem)
+                       .Where(o => o.OrderNumber == OrderNumber)
+                       .OrderByDescending(o => o.OrderDate)
+                       .ToListAsync();
+        }
+
+        public async  Task<IEnumerable<Order>> SearchForCustomer(string OrderNumber)
+        {
+          return await _context.Orders
+                    .Include(o => o.Customer)
+                    .Include(o => o.Table)
+                    .Include(o => o.OrderItems)
+                        .ThenInclude(oi => oi.MenuItem)
+                    .Where(o => o.OrderNumber == OrderNumber)
+                    .OrderByDescending(o => o.OrderDate)
+                    .ToListAsync();
+        }
+    }
 
         
 
