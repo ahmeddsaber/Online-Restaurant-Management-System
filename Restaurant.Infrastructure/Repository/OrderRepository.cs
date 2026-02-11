@@ -153,56 +153,25 @@ namespace Restaurant.Infrastructure.Repository
                     .CountAsync(o => o.Status == status);
             }
 
-        public async Task<IEnumerable<Order>> SearchForAdmin(string OrderNumber)
+        public async Task<IEnumerable<Order>> SearchByOrderNumber(string orderNumber)
         {
+            if (string.IsNullOrWhiteSpace(orderNumber))
+                return new List<Order>();
+
+            orderNumber = $"%{orderNumber.Trim()}%";
+
             return await _context.Orders
-                    .Include(o => o.Customer)
-                    .Include(o => o.Table)
-                    .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.MenuItem)
-                    .Where(o => o.OrderNumber==OrderNumber)
-                    .OrderByDescending(o => o.OrderDate)
-                    .ToListAsync();
+                .AsNoTracking()
+                .Where(o =>
+                    !o.IsDeleted &&
+                    EF.Functions.Like(o.OrderNumber, orderNumber))
+                .Take(20)
+                .ToListAsync();
         }
 
-        public  async Task<IEnumerable<Order>> SearchForManager(string OrderNumber)
-        {
-            return await _context.Orders
-                    .Include(o => o.Customer)
-                    .Include(o => o.Table)
-                    .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.MenuItem)
-                   .Where(o => o.OrderNumber == OrderNumber)
-                    .OrderByDescending(o => o.OrderDate)
-                    .ToListAsync();
-        }
-
-        public  async Task<IEnumerable<Order>> SearchForStaff(string OrderNumber)
-        {
-            return await _context.Orders
-                       .Include(o => o.Customer)
-                       .Include(o => o.Table)
-                       .Include(o => o.OrderItems)
-                           .ThenInclude(oi => oi.MenuItem)
-                       .Where(o => o.OrderNumber == OrderNumber)
-                       .OrderByDescending(o => o.OrderDate)
-                       .ToListAsync();
-        }
-
-        public async  Task<IEnumerable<Order>> SearchForCustomer(string OrderNumber)
-        {
-          return await _context.Orders
-                    .Include(o => o.Customer)
-                    .Include(o => o.Table)
-                    .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.MenuItem)
-                    .Where(o => o.OrderNumber == OrderNumber)
-                    .OrderByDescending(o => o.OrderDate)
-                    .ToListAsync();
-        }
     }
 
-        
 
-    
+
+
 }

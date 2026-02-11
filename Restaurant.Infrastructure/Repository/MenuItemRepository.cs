@@ -21,7 +21,7 @@ namespace Restaurant.Infrastructure.Repository
                 .AsNoTracking()
                 .Where(m => !m.IsDeleted)
                 .Include(m => m.Category)
-                .ToListAsync();
+                .ToListAsync(); 
         }
 
         public async Task<IEnumerable<MenuItem>> GetItemsByPriceRange(decimal minPrice, decimal maxPrice)
@@ -37,13 +37,24 @@ namespace Restaurant.Infrastructure.Repository
 
         public async Task<IEnumerable<MenuItem>> SearchItemsByName(string name)
         {
+            if (string.IsNullOrWhiteSpace(name))
+                return new List<MenuItem>();
+
+            name = $"%{name.Trim()}%";
+
             return await _context.MenuItems
                 .AsNoTracking()
                 .Where(m =>
                     !m.IsDeleted &&
-                    (m.NameEn.Contains(name) || m.NameAr.Contains(name)))
+                    (
+                        EF.Functions.Like(m.NameEn, name) ||
+                        EF.Functions.Like(m.NameAr, name)
+                    ))
+                .Take(10) // مهم للسرعة
                 .ToListAsync();
         }
+
+
 
         public async Task<IEnumerable<MenuItem>> GetItemsWithPreparationTimeLessThan(int minutes)
         {

@@ -29,9 +29,9 @@ namespace Restaurant.Application.Services
         // ========================================================================
         // ADMIN FUNCTIONS
         // ========================================================================
-        public Task<IEnumerable<AdminOrderDto>> SearchForAdmin(string status)
+        public Task<IEnumerable<AdminOrderDto>> SearchForAdmin(string OrderNumber)
         {
-            var orders = _unitOfWork.Order.SearchForAdmin(status);
+            var orders = _unitOfWork.Order.SearchByOrderNumber(OrderNumber);
             return Task.FromResult(_mapper.Map<IEnumerable<AdminOrderDto>>(orders));
 
         }
@@ -283,19 +283,22 @@ namespace Restaurant.Application.Services
 
         
 
-        public Task<IEnumerable<ManagerOrderDto>> SearchForManager(string orderName)
+        public Task<IEnumerable<ManagerOrderDto>> SearchForManager(string OrderNumber)
         {
-            throw new NotImplementedException();
+            var orders = _unitOfWork.Order.SearchByOrderNumber(OrderNumber);
+            return Task.FromResult(_mapper.Map<IEnumerable<ManagerOrderDto>>(orders));
         }
 
-        public Task<IEnumerable<StaffOrderDto>> SearchForStaff(string orderName)
+        public Task<IEnumerable<StaffOrderDto>> SearchForStaff(string OrderNumber)
         {
-            throw new NotImplementedException();
+            var orders = _unitOfWork.Order.SearchByOrderNumber(OrderNumber);
+            return Task.FromResult(_mapper.Map<IEnumerable<StaffOrderDto>>(orders));
         }
 
-        public Task<IEnumerable<CustomerOrderDto>> SearchForCustomer(string orderName)
+        public Task<IEnumerable<CustomerOrderDto>> SearchForCustomer(string OrderNumber)
         {
-            throw new NotImplementedException();
+            var orders = _unitOfWork.Order.SearchByOrderNumber(OrderNumber);
+            return Task.FromResult(_mapper.Map<IEnumerable<CustomerOrderDto>>(orders));
         }
     }
 }
