@@ -9,7 +9,7 @@ namespace Restaurant.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-   // [Authorize] // أي Endpoint محتاج Login
+
     public class MenuCategoryController : ControllerBase
     {
         private readonly IMenuCategoryService _menuCategoryService;
