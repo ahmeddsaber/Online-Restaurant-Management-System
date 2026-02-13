@@ -25,6 +25,7 @@ namespace Restaurant.Infrastructure.DbContext
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<Table> Tables { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -185,7 +186,39 @@ namespace Restaurant.Infrastructure.DbContext
                 entity.HasIndex(e => new { e.CategoryId, e.IsAvailable })
                     .HasDatabaseName("IX_MenuItem_CategoryId_IsAvailable");
             });
+            modelBuilder.Entity<RefreshToken>(entity =>
+            {
+                entity.HasKey(e => e.Id);
 
+                entity.Property(e => e.Token)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.Property(e => e.ExpiresAt)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedAt)
+                    .IsRequired();
+
+                entity.Property(e => e.IsRevoked)
+                    .HasDefaultValue(false);
+
+                // Relationships
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Indexes
+                entity.HasIndex(e => e.Token)
+                    .HasDatabaseName("IX_RefreshToken_Token");
+
+                entity.HasIndex(e => e.UserId)
+                    .HasDatabaseName("IX_RefreshToken_UserId");
+
+                entity.HasIndex(e => new { e.UserId, e.IsRevoked })
+                    .HasDatabaseName("IX_RefreshToken_UserId_IsRevoked");
+            });
             // ============================================================================
             // Table Configuration
             // ============================================================================
