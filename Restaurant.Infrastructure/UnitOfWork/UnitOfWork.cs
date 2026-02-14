@@ -18,6 +18,7 @@ namespace Restaurant.Infrastructure.UnitOfWork
         private IOrderItemRepo? _orderItemRepo;
         private ITableRepo? _tableRepo;
         private IPaymentRepo? _paymentRepo;
+        private IRefreshTokenRepo ? _refreshTokenRepo;
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
@@ -37,6 +38,9 @@ namespace Restaurant.Infrastructure.UnitOfWork
         public IOrderItemRepo OrderItem => _orderItemRepo ??= new OrderItemRepository(_context);
         public ITableRepo Table => _tableRepo ??= new TableRepository(_context);
         public IPaymentRepo Payment => _paymentRepo ??= new PaymentRepository(_context);
+       
+
+        public IRefreshTokenRepo RefreshToken => _refreshTokenRepo ??= new RefreshTokenRepository(_context);
 
         // ============================
         // Generic Repository
