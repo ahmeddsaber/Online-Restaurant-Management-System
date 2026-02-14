@@ -36,7 +36,6 @@ namespace Restaurant.Application.DTOS.Auth
         public string? Address { get; set; }
     }
 
-    // Login
     public class LoginDto
     {
         [Required(ErrorMessage = "Email is required")]
@@ -49,16 +48,15 @@ namespace Restaurant.Application.DTOS.Auth
         public bool RememberMe { get; set; }
     }
 
-    // Auth Response
     public class AuthResponseDto
     {
         public string Token { get; set; } = string.Empty;
         public string RefreshToken { get; set; } = string.Empty;
-        public DateTime Expiration { get; set; }
+        public DateTime TokenExpiration { get; set; }
+        public DateTime RefreshTokenExpiration { get; set; }
         public UserDto User { get; set; } = null!;
     }
 
-    // User Info
     public class UserDto
     {
         public string Id { get; set; } = string.Empty;
@@ -66,11 +64,18 @@ namespace Restaurant.Application.DTOS.Auth
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; }
+        public string? Address { get; set; }
         public string PreferredLanguage { get; set; } = string.Empty;
         public List<string> Roles { get; set; } = new();
     }
 
-    // Change Password
+    public class RefreshTokenDto
+    {
+        [Required]
+        public string RefreshToken { get; set; } = string.Empty;
+    }
+
     public class ChangePasswordDto
     {
         [Required]
@@ -85,18 +90,33 @@ namespace Restaurant.Application.DTOS.Auth
         public string ConfirmNewPassword { get; set; } = string.Empty;
     }
 
-    // Refresh Token
-    public class RefreshTokenDto
+    public class UpdateProfileDto
     {
         [Required]
-        public string RefreshToken { get; set; } = string.Empty;
+        [StringLength(100)]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(100)]
+        public string LastName { get; set; } = string.Empty;
+
+        [Phone]
+        public string? PhoneNumber { get; set; }
+
+        [StringLength(500)]
+        public string? Address { get; set; }
     }
 
-    // Update Language (Frontend Button)
     public class UpdateLanguageDto
     {
         [Required]
         [RegularExpression("^(en|ar)$", ErrorMessage = "Language must be 'en' or 'ar'")]
         public string Language { get; set; } = string.Empty;
+    }
+
+    public class RevokeTokenDto
+    {
+        [Required]
+        public string RefreshToken { get; set; } = string.Empty;
     }
 }

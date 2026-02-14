@@ -207,7 +207,7 @@ namespace Restaurant.Infrastructure.DbContext
                 entity.HasOne(e => e.User)
                     .WithMany()
                     .HasForeignKey(e => e.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.Cascade).IsRequired(false);
 
                 // Indexes
                 entity.HasIndex(e => e.Token)
@@ -273,9 +273,7 @@ namespace Restaurant.Infrastructure.DbContext
                     .HasConversion<int>();
 
                 entity.Property(e => e.Status)
-                    .IsRequired()
-                    .HasConversion<int>()
-                    .HasDefaultValue(OrderStatus.Pending);
+      .HasConversion<int>();
 
                 entity.Property(e => e.Subtotal)
                     .IsRequired()
@@ -429,7 +427,9 @@ namespace Restaurant.Infrastructure.DbContext
             modelBuilder.Entity<Order>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<OrderItem>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<Table>().HasQueryFilter(e => !e.IsDeleted);
+        
             modelBuilder.Entity<ApplicationUser>().HasQueryFilter(e => !e.IsDeleted);
+
         }
 
         // ============================================================================
