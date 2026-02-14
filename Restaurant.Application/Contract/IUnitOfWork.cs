@@ -17,6 +17,7 @@ namespace Restaurant.Application.Contract
         IOrderItemRepo OrderItem { get; }
         IPaymentRepo Payment { get; }
         ITableRepo Table { get; }
+        IRefreshTokenRepo RefreshToken { get; }
 
         Task<int> SaveChangesAsync();
         

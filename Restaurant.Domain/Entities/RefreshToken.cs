@@ -6,20 +6,19 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Domain.Entities
 {
-    public class RefreshToken
+    public class RefreshToken : BaseEntity
     {
-        public int Id { get; set; }
         public string Token { get; set; } = string.Empty;
         public DateTime ExpiresAt { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsRevoked { get; set; }
         public DateTime? RevokedAt { get; set; }
         public string? ReplacedByToken { get; set; }
+
         // Foreign Key
         public string? UserId { get; set; }
 
         // Navigation Property
-        public virtual ApplicationUser?  User { get; set; }
+        public virtual ApplicationUser? User { get; set; }
 
         public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
         public bool IsActive => !IsRevoked && !IsExpired;
