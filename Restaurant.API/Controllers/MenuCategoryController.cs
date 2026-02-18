@@ -24,7 +24,7 @@ namespace Restaurant.API.Controllers
         // =====================================
 
         [HttpGet("GetAllMenuCategories")]
-       // [Authorize(Roles = "Admin")]
+       [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllMenuCategories()
         {
             var categories = await _menuCategoryService.GetAllCategories();
@@ -35,7 +35,7 @@ namespace Restaurant.API.Controllers
         }
 
         [HttpGet("GetActiveMenuCategories")]
-       // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetActiveMenuCategories()
         {
             var categories = await _menuCategoryService.GetActiveCategoriesAsync();
@@ -45,7 +45,7 @@ namespace Restaurant.API.Controllers
             return Ok(new { success = true, data = categories });
         }
         [HttpGet("GetActiveMenuCategoriesForCustomer")]
-       // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetActiveMenuCategoriesForCustomer()
         {
             var categories = await _menuCategoryService.GetActiveCategoriesforCustomerAsync();
@@ -56,7 +56,7 @@ namespace Restaurant.API.Controllers
         }
 
         [HttpGet("GetDeletedMenuCategories")]
-       // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetDeletedMenuCategories()
         {
             var categories = await _menuCategoryService.GetDeletedCategoriesAsync();
@@ -67,7 +67,7 @@ namespace Restaurant.API.Controllers
         }
 
         [HttpGet("GetMenuCategoryById/{id:int}")]
-       // [Authorize(Roles = "Admin")]
+       [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetMenuCategoryById(int id)
         {
             if (id <= 0)
@@ -81,7 +81,7 @@ namespace Restaurant.API.Controllers
         }
 
         [HttpGet("GetMenuCategoryWithItems/{id:int}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetMenuCategoryWithItems(int id)
         {
             if (id <= 0)
@@ -95,7 +95,7 @@ namespace Restaurant.API.Controllers
         }
 
         [HttpGet("SearchMenuCategory")]
-       // [Authorize(Roles = "Admin")]
+       [Authorize(Roles = "Admin")]
         public async Task<IActionResult> SearchMenuCategory([FromQuery] string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -109,7 +109,7 @@ namespace Restaurant.API.Controllers
         }
 
         [HttpPost("CreateMenuCategory")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateMenuCategory([FromBody] AdminCreateCategoryDto dto)
         {
             if (!ModelState.IsValid)
@@ -131,7 +131,7 @@ namespace Restaurant.API.Controllers
 
 
         [HttpPut("UpdateMenuCategory")]
-        // [Authorize(Roles = "Admin")]
+         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateMenuCategory([FromBody] AdminUpdateCategoryDto dto)
         {
             if (!ModelState.IsValid)
@@ -145,7 +145,7 @@ namespace Restaurant.API.Controllers
         }
 
         [HttpDelete("DeleteMenuCategory/{id:int}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteMenuCategory(int id)
         {
             if (id <= 0)
@@ -160,7 +160,7 @@ namespace Restaurant.API.Controllers
         // =====================================
 
         [HttpGet("GetCategorySales")]
-       // [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> GetCategorySales()
         {
             var result = await _menuCategoryService.GetCategorySalesAsync();

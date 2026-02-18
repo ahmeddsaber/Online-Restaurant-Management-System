@@ -23,7 +23,7 @@ namespace Restaurant.API.Controllers
         /// Get all tables (Admin only)
         /// </summary>
         [HttpGet]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllTables([FromQuery] PaginationDto pagination)
         {
             var result = await _tableService.GetAllTablesAsync(pagination);
@@ -34,7 +34,7 @@ namespace Restaurant.API.Controllers
         /// Create a new table (Admin only)
         /// </summary>
         [HttpPost]
-        //[Authorize(Roles = "Admin")]
+            [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateTable([FromBody] AdminCreateTableDto dto)
         {
             if (!ModelState.IsValid)
