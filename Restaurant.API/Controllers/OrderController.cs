@@ -22,7 +22,7 @@ public class OrderController : ControllerBase
     // 🔴 ADMIN
     // =========================================================
     [HttpGet("admin")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetAllOrdersAdmin()
     {
         var orders = await _orderService.GetAllOrdersForAdminAsync();
@@ -30,7 +30,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet("admin/{id}")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetOrderByIdAdmin(int id)
     {
         var order = await _orderService.GetOrderByIdForAdminAsync(id);
@@ -39,7 +39,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpDelete("admin/{id}")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteOrder(int id)
     {
         var result = await _orderService.DeleteOrderAsync(id);
@@ -51,7 +51,7 @@ public class OrderController : ControllerBase
     // 🟣 MANAGER
     // =========================================================
     [HttpGet("manager")]
-    //[Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Manager")]
     public async Task<IActionResult> GetAllOrdersManager()
     {
         var orders = await _orderService.GetAllOrdersForManagerAsync();
@@ -67,7 +67,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet("manager/today")]
-    //[Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Manager")]
     public async Task<IActionResult> GetTodayOrders()
     {
         var orders = await _orderService.GetTodayOrdersForManagerAsync();
@@ -75,7 +75,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpPut("manager/status")]
-    //[Authorize(Roles = "Manager")]
+    [Authorize(Roles = "Manager")]
     public async Task<IActionResult> UpdateOrderStatus(UpdateOrderStatusDto dto)
     {
         var result = await _orderService.UpdateOrderStatusAsync(dto);
@@ -87,7 +87,7 @@ public class OrderController : ControllerBase
     // 🟢 CUSTOMER
     // =========================================================
     [HttpPost]
-    //[Authorize(Roles = "Customer")]
+    [Authorize(Roles = "Customer")]
     public async Task<IActionResult> CreateOrder(CreateOrderDto dto)
     {
         var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -100,7 +100,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet("my")]
-    //[Authorize(Roles = "Customer")]
+    [Authorize(Roles = "Customer")]
     public async Task<IActionResult> GetMyOrders()
     {
         var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -112,7 +112,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet("history")]
-    //[Authorize(Roles = "Customer")]
+    [Authorize(Roles = "Customer")]
     public async Task<IActionResult> GetHistory()
     {
         var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -124,7 +124,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpPost("cancel")]
-    //[Authorize(Roles = "Customer")]
+    [Authorize(Roles = "Customer")]
     public async Task<IActionResult> CancelOrder(CancelOrderDto dto)
     {
         var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -141,7 +141,7 @@ public class OrderController : ControllerBase
     // 🔵 STAFF (KITCHEN)
     // =========================================================
     [HttpGet("kitchen")]
-    //[Authorize(Roles = "Staff")]
+    [Authorize(Roles = "Staff")]
     public async Task<IActionResult> GetKitchenOrders()
     {
         var orders = await _orderService.GetOrdersForKitchenAsync();
@@ -149,7 +149,7 @@ public class OrderController : ControllerBase
     }
 
     [HttpPut("staff/status")]
-    //[Authorize(Roles = "Staff")]
+    [Authorize(Roles = "Staff")]
     public async Task<IActionResult> UpdateStatusByStaff(StaffUpdateOrderStatusDto dto)
     {
         var result = await _orderService.UpdateOrderStatusByStaffAsync(dto);
