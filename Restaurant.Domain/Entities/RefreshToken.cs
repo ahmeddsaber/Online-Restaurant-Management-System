@@ -15,7 +15,8 @@ namespace Restaurant.Domain.Entities
         public string? ReplacedByToken { get; set; }
 
         // Foreign Key
-        public string? UserId { get; set; }
+        public string UserId { get; set; } = null!;
+
 
         // Navigation Property
         public virtual ApplicationUser? User { get; set; }

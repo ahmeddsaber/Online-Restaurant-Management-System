@@ -115,6 +115,8 @@ namespace Restaurant.API
             builder.Services.AddScoped<IOrderItemService, OrderItemService>();
             builder.Services.AddScoped<ITableRepo, TableRepository>();
             builder.Services.AddScoped<ITableService, TableService>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
+
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // Swagger / OpenAPI Configuration
