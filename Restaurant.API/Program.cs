@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Restaurant.Application.Contract;
 using Restaurant.Application.Interfaces;
+using Restaurant.Application.Interfaces.Payment;
 using Restaurant.Application.Services;
 using Restaurant.Domain.Entities;
 using Restaurant.Infrastructure.Data;
@@ -116,6 +117,8 @@ namespace Restaurant.API
             builder.Services.AddScoped<ITableRepo, TableRepository>();
             builder.Services.AddScoped<ITableService, TableService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
+            builder.Services.AddScoped<IStripePaymentService, StripePaymentService>();
 
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
