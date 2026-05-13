@@ -915,3 +915,4 @@ namespace Restaurant.Infrastructure.Migrations
         }
     }
 }
+

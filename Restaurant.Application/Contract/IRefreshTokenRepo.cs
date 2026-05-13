@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Application.Contract
 {
-    public interface IRefreshTokenRepo : IGenaricRepository<RefreshToken>
+    public interface IRefreshTokenRepo : IGenericRepository<RefreshToken>
     {
         Task<RefreshToken?> GetByTokenAsync(string token);
         Task<IEnumerable<RefreshToken>> GetActiveTokensByUserIdAsync(string userId);
@@ -16,3 +16,4 @@ namespace Restaurant.Application.Contract
         Task<int> DeleteExpiredTokensAsync();
     }
 }
+

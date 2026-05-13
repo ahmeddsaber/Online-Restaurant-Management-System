@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Application.Contract
 {
-    public interface IOrderRepo : IGenaricRepository<Order>
+    public interface IOrderRepo : IGenericRepository<Order>
     {
         Task<IEnumerable<Order>> SearchByOrderNumber(string OrderNumber);
      
@@ -26,3 +26,4 @@ namespace Restaurant.Application.Contract
         Task<int> GetOrdersCountByStatusAsync(OrderStatus status);
     }
 }
+

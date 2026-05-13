@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Application.Contract
 {
-    public interface IMenuCategoryRepo : IGenaricRepository<MenuCategory>
+    public interface IMenuCategoryRepo : IGenericRepository<MenuCategory>
     {
         Task< IEnumerable <MenuCategory?>> SearchAsync(string? name);
         Task<MenuCategory?> GetCategoryByIdWithItemsAsync(int id);
@@ -17,3 +17,4 @@ namespace Restaurant.Application.Contract
         Task<IEnumerable<CategorySalesDto>> GetCategorySalesAsync();
     }
 }
+

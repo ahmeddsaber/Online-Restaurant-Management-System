@@ -1,0 +1,43 @@
+@using Microsoft.AspNetCore.Components
+
+<div class="modal fade show d-block" tabindex="-1" role="dialog" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered" role="document" dir="@(IsRtl ? "rtl" : "ltr")">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">@Title</h5>
+            </div>
+
+            <div class="modal-body">
+                <p>@Message</p>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="OnCancel">
+                    @(IsRtl ? "إلغاء" : "Cancel")
+                </button>
+                <button class="btn btn-danger" @onclick="OnConfirm">
+                    @(IsRtl ? "تأكيد الحذف" : "Confirm Delete")
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Confirm";
+
+    [Parameter]
+    public string Message { get; set; } = "Are you sure?";
+
+    [Parameter]
+    public bool IsRtl { get; set; } = false;
+
+    [Parameter]
+    public EventCallback OnConfirm { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+}

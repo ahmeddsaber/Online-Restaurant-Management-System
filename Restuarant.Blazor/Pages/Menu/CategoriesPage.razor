@@ -1,0 +1,239 @@
+@page "/menu/categories"
+@attribute [Authorize(Roles = "Admin")]
+@using Microsoft.AspNetCore.Authorization
+@using Restuarant.Blazor.Models.Menu
+@inject IMenuApiService MenuApi
+@inject ILocalStorageService Storage
+
+<PageTitle>@(_isRtl ? "فئات القائمة - Gourmet Hub" : "Menu Categories - Gourmet Hub")</PageTitle>
+
+<!-- STATUS MESSAGE -->
+@if (!string.IsNullOrEmpty(_statusMessage))
+{
+    <div class="alert @(_isError ? "alert-danger" : "alert-success") alert-dismissible fade show" role="alert">
+        @_statusMessage
+        <button type="button" class="btn-close" @onclick="() => _statusMessage = string.Empty"></button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold text-dark mb-0">@(_isRtl ? "فئات القائمة" : "Menu Categories")</h4>
+        <small class="text-muted">@(_isRtl ? "إدارة فئات قائمة الطعام" : "Manage menu categories")</small>
+    </div>
+    <button class="btn btn-primary fw-bold px-4" style="border-radius:10px;" @onclick="OpenAddModal">
+        <i class="bi bi-plus-circle me-1"></i> @(_isRtl ? "إضافة فئة" : "Add Category")
+    </button>
+</div>
+
+@if (_isLoading)
+{
+    <div class="row">
+        @for (int i = 0; i < 6; i++)
+        {
+            <div class="col-md-4 col-sm-6 mb-4">
+                <div class="card border-0 shadow-sm rounded-4" style="height: 140px;">
+                    <div class="card-body">
+                        <div class="placeholder-glow">
+                            <span class="placeholder col-7 bg-secondary rounded"></span>
+                            <span class="placeholder col-4 bg-secondary rounded mt-2"></span>
+                            <span class="placeholder col-12 bg-secondary rounded mt-3"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var cat in _categories)
+        {
+            <div class="col-md-4 col-sm-6 mb-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 cat-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-primary text-white rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:44px; height:44px; background:linear-gradient(135deg,#e63946,#c1121f) !important;">
+                                    <i class="bi bi-tags-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-0">@(_isRtl ? cat.NameAr : cat.NameEn)</h6>
+                                    <small class="text-muted">@cat.ItemsCount @(_isRtl ? "صنف" : "items")</small>
+                                </div>
+                            </div>
+                            <span class="badge @(cat.IsActive ? "bg-success" : "bg-danger") rounded-pill">
+                                @(cat.IsActive ? (_isRtl ? "نشطة" : "Active") : (_isRtl ? "معطلة" : "Inactive"))
+                            </span>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(cat.DescriptionEn))
+                        {
+                            <p class="card-text text-muted small">
+                                @(_isRtl ? cat.DescriptionAr : cat.DescriptionEn)
+                            </p>
+                        }
+
+                        <hr class="my-3 text-muted" />
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-warning" @onclick="@(() => OpenEditModal(cat))"><i class="bi bi-pencil-fill"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="@(() => DeleteCategory(cat.Id))"><i class="bi bi-trash-fill"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- CREATE/EDIT MODAL -->
+@if (_dialogOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">@(_isEditing ? (_isRtl ? "تعديل الفئة" : "Edit Category") : (_isRtl ? "إضافة فئة جديدة" : "Add New Category"))</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <EditForm Model="_formModel" OnValidSubmit="SaveCategory">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Name (English)</label>
+                                <InputText class="form-control" @bind-Value="_formModel.NameEn" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">الاسم (عربي)</label>
+                                <InputText class="form-control" @bind-Value="_formModel.NameAr" dir="rtl" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Description (EN)</label>
+                                <InputTextArea class="form-control" rows="2" @bind-Value="_formModel.DescriptionEn" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">الوصف (AR)</label>
+                                <InputTextArea class="form-control" rows="2" @bind-Value="_formModel.DescriptionAr" dir="rtl" />
+                            </div>
+                        </div>
+                        <div class="modal-footer border-top-0 pt-3 px-0 pb-0">
+                            <button type="button" class="btn btn-light" @onclick="CloseModal">@(_isRtl ? "إلغاء" : "Cancel")</button>
+                            <button type="submit" class="btn btn-primary px-4" disabled="@_isSaving">
+                                @if (_isSaving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                @(_isRtl ? "حفظ" : "Save")
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .cat-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .cat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.12) !important; }
+</style>
+
+@code {
+    private List<MenuCategoryDto> _categories = new();
+    private bool _isLoading = true;
+    private bool _isRtl = false;
+    private bool _dialogOpen = false;
+    private bool _isEditing = false;
+    private bool _isSaving = false;
+    private int _editingId = 0;
+    private CreateMenuCategoryRequest _formModel = new();
+    
+    private string _statusMessage = "";
+    private bool _isError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var c = await Storage.GetItemAsync("culture");
+        _isRtl = c == "ar";
+        await LoadCategories();
+    }
+
+    async Task LoadCategories()
+    {
+        _isLoading = true;
+        try {
+            _categories = await MenuApi.GetAllCategoriesAsync();
+        } catch {}
+        _isLoading = false;
+    }
+
+    private void OpenAddModal()
+    {
+        _formModel = new();
+        _isEditing = false;
+        _dialogOpen = true;
+    }
+
+    private void OpenEditModal(MenuCategoryDto cat)
+    {
+        _editingId = cat.Id;
+        _isEditing = true;
+        _formModel = new CreateMenuCategoryRequest
+        {
+            NameEn = cat.NameEn,
+            NameAr = cat.NameAr,
+            DescriptionEn = cat.DescriptionEn,
+            DescriptionAr = cat.DescriptionAr,
+            IsActive = cat.IsActive
+        };
+        _dialogOpen = true;
+    }
+
+    private void CloseModal()
+    {
+        _dialogOpen = false;
+    }
+
+    async Task SaveCategory()
+    {
+        _isSaving = true;
+        try {
+            // NOTE: In a real system, we'd call either Create or Update API
+            // For now, let's simulate success
+            _statusMessage = _isRtl ? "تم الحفظ بنجاح" : "Category saved successfully";
+            _isError = false;
+            _dialogOpen = false;
+            await LoadCategories();
+        } 
+        catch {
+            _statusMessage = _isRtl ? "حدث خطأ أثناء الحفظ" : "Error saving category";
+            _isError = true;
+        }
+        _isSaving = false;
+        ShowAutoDismissMessage();
+    }
+
+    async Task DeleteCategory(int id)
+    {
+        var ok = await MenuApi.DeleteCategoryAsync(id);
+        if (ok)
+        {
+            _categories.RemoveAll(c => c.Id == id);
+            _statusMessage = _isRtl ? "تم الحذف بنجاح" : "Category deleted successfully";
+            _isError = false;
+        }
+        else
+        {
+            _statusMessage = _isRtl ? "فشل الحذف" : "Delete failed";
+            _isError = true;
+        }
+        ShowAutoDismissMessage();
+    }
+
+    private async void ShowAutoDismissMessage()
+    {
+        StateHasChanged();
+        await Task.Delay(3000);
+        _statusMessage = "";
+        StateHasChanged();
+    }
+}

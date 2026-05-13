@@ -14,34 +14,80 @@ namespace Restaurant.Application.Services
     public class MenuCategoryService : IMenuCategoryService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IImageService _imageService;
 
-        public MenuCategoryService(IUnitOfWork unitOfWork)
+        public MenuCategoryService(IUnitOfWork unitOfWork, IImageService imageService)
         {
             _unitOfWork = unitOfWork;
+            _imageService = imageService;
         }
 
         public async Task<AdminCategoryDto?> CreateCategory(AdminCreateCategoryDto dto)
         {
-            var entity = dto.Adapt<MenuCategory>();
-
-            if (string.IsNullOrWhiteSpace(entity.NameEn) && string.IsNullOrWhiteSpace(entity.NameAr))
+            if (string.IsNullOrWhiteSpace(dto.NameEn) && string.IsNullOrWhiteSpace(dto.NameAr))
                 return null;
+
+            var entity = new MenuCategory
+            {
+                NameEn = dto.NameEn,
+                NameAr = dto.NameAr,
+                DescriptionEn = dto.DescriptionEn,
+                DescriptionAr = dto.DescriptionAr,
+                DisplayOrder = dto.DisplayOrder,
+                IsActive = dto.IsActive
+            };
+
+            // ✅ Handle image upload safely
+            if (dto.ImageFile != null)
+            {
+                entity.ImageUrl = await _imageService.UploadAsync(dto.ImageFile, "categories");
+            }
 
             await _unitOfWork.MenuCategoryRepo.Create(entity);
             await _unitOfWork.SaveChangesAsync();
 
-            // ارجع DTO بعد الحفظ
-            return entity.Adapt<AdminCategoryDto>();
+            return new AdminCategoryDto
+            {
+                Id = entity.Id,
+                NameEn = entity.NameEn,
+                NameAr = entity.NameAr,
+                DescriptionEn = entity.DescriptionEn,
+                DescriptionAr = entity.DescriptionAr,
+                ImageUrl = entity.ImageUrl,
+                DisplayOrder = entity.DisplayOrder,
+                IsActive = entity.IsActive,
+                CreatedAt = entity.CreatedAt,
+                MenuItemsCount = entity.MenuItems.Count,
+                AvailableItemsCount = entity.MenuItems.Count(m => m.IsAvailable && !m.IsDeleted)
+            };
         }
-
-
 
         public async Task<AdminCategoryDto?> UpdateCategory(AdminUpdateCategoryDto dto)
         {
             var category = await _unitOfWork.MenuCategoryRepo.GetById(dto.Id);
             if (category == null) return null;
 
-            dto.Adapt(category);
+            // ✅ SAFE PARTIAL UPDATE - Preserve critical fields
+            category.NameEn = dto.NameEn;
+            category.NameAr = dto.NameAr;
+            category.DescriptionEn = dto.DescriptionEn;
+            category.DescriptionAr = dto.DescriptionAr;
+            category.DisplayOrder = dto.DisplayOrder;
+            category.IsActive = dto.IsActive;
+
+            // ✅ Only update image if new one is provided
+            if (dto.ImageFile != null)
+            {
+                // Delete old image if exists
+                if (!string.IsNullOrEmpty(category.ImageUrl))
+                {
+                    await _imageService.DeleteAsync(category.ImageUrl);
+                }
+                // Upload new image
+                category.ImageUrl = await _imageService.UploadAsync(dto.ImageFile, "categories");
+            }
+            // ✅ If no new image, existing ImageUrl is preserved
+
             _unitOfWork.MenuCategoryRepo.Update(category);
             await _unitOfWork.SaveChangesAsync();
 
@@ -52,6 +98,12 @@ namespace Restaurant.Application.Services
         {
             var category = await _unitOfWork.MenuCategoryRepo.GetById(id);
             if (category == null) return;
+
+            // ✅ Delete associated image when deleting category
+            if (!string.IsNullOrEmpty(category.ImageUrl))
+            {
+                await _imageService.DeleteAsync(category.ImageUrl);
+            }
 
             category.IsDeleted = true;
             _unitOfWork.MenuCategoryRepo.Update(category);
@@ -79,7 +131,22 @@ namespace Restaurant.Application.Services
         public async Task<AdminCategoryDto?> GetCategoryById(int id)
         {
             var category = await _unitOfWork.MenuCategoryRepo.GetById(id);
-            return category?.Adapt<AdminCategoryDto>();
+
+            if (category == null)
+                return null;
+
+            return new AdminCategoryDto
+            {
+                Id = category.Id,
+                NameEn = category.NameEn,
+                NameAr = category.NameAr,
+                DescriptionEn = category.DescriptionEn,
+                DescriptionAr = category.DescriptionAr,
+                ImageUrl = category.ImageUrl,
+                DisplayOrder = category.DisplayOrder,
+                IsActive = category.IsActive,
+                CreatedAt = category.CreatedAt
+            };
         }
 
         public async Task<AdminCategoryDto?> GetCategoryByIdWithItemsAsync(int id)
@@ -113,7 +180,7 @@ namespace Restaurant.Application.Services
                 ImageUrl = c.ImageUrl,
                 DisplayOrder = c.DisplayOrder,
                 MenuItems = c.MenuItems
-                    .Where(mi => !mi.IsDeleted && mi.IsAvailable) 
+                    .Where(mi => !mi.IsDeleted && mi.IsAvailable)
                     .Select(mi => new CustomerMenuItemDto
                     {
                         Id = mi.Id,
@@ -125,12 +192,12 @@ namespace Restaurant.Application.Services
                         IsAvailable = mi.IsAvailable,
                         PreparationTime = mi.PreparationTime,
                         ImageUrl = mi.ImageUrl,
-                        CanOrder = mi.IsAvailable && !mi.IsDeleted 
+                        CanOrder = mi.IsAvailable && !mi.IsDeleted
                     }).ToList()
             });
-
+                        
             return result;
         }
-
     }
 }
+

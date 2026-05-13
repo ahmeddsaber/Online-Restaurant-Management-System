@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Restaurant.Application.DTOS.Auth;
+using Restaurant.Application.DTOS.Common;
 using Restaurant.Application.Interfaces;
 using System.Security.Claims;
 
 namespace Restaurant.API.Controllers
 {
+    /// <summary>
+    /// Authentication and user account management
+    /// </summary>
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -26,15 +29,8 @@ namespace Restaurant.API.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            try
-            {
-                var result = await _authService.RegisterAsync(dto);
-                return Ok(new { success = true, data = result, message = "Registration successful" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+            var result = await _authService.RegisterAsync(dto);
+            return Ok(ApiResponseDto<AuthResponseDto>.SuccessResponse(result, "Registration successful"));
         }
 
         /// <summary>
@@ -43,15 +39,8 @@ namespace Restaurant.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            try
-            {
-                var result = await _authService.LoginAsync(dto);
-                return Ok(new { success = true, data = result, message = "Login successful" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Unauthorized(new { success = false, message = ex.Message });
-            }
+            var result = await _authService.LoginAsync(dto);
+            return Ok(ApiResponseDto<AuthResponseDto>.SuccessResponse(result, "Login successful"));
         }
 
         /// <summary>
@@ -61,17 +50,9 @@ namespace Restaurant.API.Controllers
         [Authorize]
         public async Task<IActionResult> Logout()
         {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-                await _authService.LogoutAsync(userId);
-                return Ok(new { success = true, message = "Logged out successfully" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Logout error");
-                return BadRequest(new { success = false, message = "Logout failed" });
-            }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            await _authService.LogoutAsync(userId);
+            return Ok(ApiResponseDto<bool>.SuccessResponse(true, "Logged out successfully"));
         }
 
         /// <summary>
@@ -80,15 +61,8 @@ namespace Restaurant.API.Controllers
         [HttpPost("refresh-token")]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDto dto)
         {
-            try
-            {
-                var result = await _authService.RefreshTokenAsync(dto.RefreshToken);
-                return Ok(new { success = true, data = result, message = "Token refreshed" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Unauthorized(new { success = false, message = ex.Message });
-            }
+            var result = await _authService.RefreshTokenAsync(dto.RefreshToken);
+            return Ok(ApiResponseDto<AuthResponseDto>.SuccessResponse(result, "Token refreshed"));
         }
 
         /// <summary>
@@ -98,21 +72,13 @@ namespace Restaurant.API.Controllers
         [Authorize]
         public async Task<IActionResult> RevokeToken([FromBody] RevokeTokenDto dto)
         {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-                var result = await _authService.RevokeTokenAsync(dto.RefreshToken, userId);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _authService.RevokeTokenAsync(dto.RefreshToken, userId);
 
-                if (!result)
-                    return BadRequest(new { success = false, message = "Token not found" });
+            if (!result)
+                return BadRequest(ApiResponseDto<bool>.ErrorResponse("Token not found or invalid"));
 
-                return Ok(new { success = true, message = "Token revoked" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Revoke token error");
-                return BadRequest(new { success = false, message = "Failed to revoke token" });
-            }
+            return Ok(ApiResponseDto<bool>.SuccessResponse(true, "Token revoked"));
         }
 
         /// <summary>
@@ -122,16 +88,9 @@ namespace Restaurant.API.Controllers
         [Authorize]
         public async Task<IActionResult> GetCurrentUser()
         {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-                var result = await _authService.GetCurrentUserAsync(userId);
-                return Ok(new { success = true, data = result });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return NotFound(new { success = false, message = ex.Message });
-            }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _authService.GetCurrentUserAsync(userId);
+            return Ok(ApiResponseDto<UserDto>.SuccessResponse(result));
         }
 
         /// <summary>
@@ -141,16 +100,9 @@ namespace Restaurant.API.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
         {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-                await _authService.UpdateProfileAsync(userId, dto);
-                return Ok(new { success = true, message = "Profile updated" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            await _authService.UpdateProfileAsync(userId, dto);
+            return Ok(ApiResponseDto<bool>.SuccessResponse(true, "Profile updated"));
         }
 
         /// <summary>
@@ -160,16 +112,9 @@ namespace Restaurant.API.Controllers
         [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-                await _authService.ChangePasswordAsync(userId, dto);
-                return Ok(new { success = true, message = "Password changed successfully" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            await _authService.ChangePasswordAsync(userId, dto);
+            return Ok(ApiResponseDto<bool>.SuccessResponse(true, "Password changed successfully"));
         }
 
         /// <summary>
@@ -179,16 +124,30 @@ namespace Restaurant.API.Controllers
         [Authorize]
         public async Task<IActionResult> UpdateLanguage([FromBody] UpdateLanguageDto dto)
         {
-            try
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-                await _authService.UpdateLanguageAsync(userId, dto);
-                return Ok(new { success = true, message = "Language updated" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { success = false, message = ex.Message });
-            }
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            await _authService.UpdateLanguageAsync(userId, dto);
+            return Ok(ApiResponseDto<bool>.SuccessResponse(true, "Language updated"));
+        }
+
+        /// <summary>
+        /// Request password reset token (forgot password)
+        /// </summary>
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            var result = await _authService.ForgotPasswordAsync(dto);
+            return Ok(ApiResponseDto<ForgotPasswordResponseDto>.SuccessResponse(result, result.Message));
+        }
+
+        /// <summary>
+        /// Reset password using token
+        /// </summary>
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+        {
+            await _authService.ResetPasswordAsync(dto);
+            return Ok(ApiResponseDto<bool>.SuccessResponse(true, "Password reset successfully"));
         }
     }
-    }
+}
+

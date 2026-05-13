@@ -17,3 +17,4 @@ namespace Restaurant.Application.Interfaces.Payment
         Task<ApiResponseDto<PaymentResponseDto>> GetPaymentByIdAsync(int paymentId);
     }
 }
+

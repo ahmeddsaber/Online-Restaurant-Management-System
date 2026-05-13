@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 namespace Restaurant.Infrastructure.Repository
 {
 
-        public class OrderRepository : GenaricRepository<Order>, IOrderRepo
+        public class OrderRepository : GenericRepository<Order>, IOrderRepo
         {
             private readonly ApplicationDbContext _context;
 
@@ -175,3 +175,4 @@ namespace Restaurant.Infrastructure.Repository
 
 
 }
+

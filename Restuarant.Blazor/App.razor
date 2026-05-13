@@ -1,0 +1,40 @@
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    @if (context.User.Identity?.IsAuthenticated == true)
+                    {
+                        <!-- Authenticated but wrong role -->
+                        <div class="d-flex flex-column align-items-center justify-content-center min-vh-100 gap-3">
+                            <i class="bi bi-x-circle-fill text-danger" style="font-size:4rem;"></i>
+                            <h5 class="fw-bold" style="color:#1a1a2e;">Access Denied</h5>
+                            <p class="text-muted">You don't have permission to view this page.</p>
+                            <a href="/" class="btn btn-primary" style="border-radius:10px;">
+                                Go to Dashboard
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <RedirectToLogin />
+                    }
+                </NotAuthorized>
+                <Authorizing>
+                    <div class="d-flex align-items-center justify-content-center min-vh-100">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </Authorizing>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <PageTitle>Not Found</PageTitle>
+            <LayoutView Layout="@typeof(AuthLayout)">
+                <Restuarant.Blazor.Pages.NotFound />
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

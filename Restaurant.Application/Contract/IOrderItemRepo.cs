@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Application.Contract
 {
-    public interface IOrderItemRepo : IGenaricRepository<OrderItem>
+    public interface IOrderItemRepo : IGenericRepository<OrderItem>
     {
         Task<IEnumerable<OrderItem>> GetAllOrderItemsAsync();
         Task<IEnumerable<OrderItem>> GetOrderItemsByOrderIdAsync(int orderId);
@@ -15,3 +15,4 @@ namespace Restaurant.Application.Contract
         Task<bool> DeleteOrderItemAsync(int orderItemId);
     }
 }
+

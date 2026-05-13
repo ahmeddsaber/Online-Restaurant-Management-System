@@ -16,7 +16,7 @@ namespace Restaurant.Domain.Entities
         public string? DescriptionEn { get; set; }
         public string? DescriptionAr { get; set; }
         [NotMapped]
-        public IFormFile? ImageFile { get; set; }
+        //public IFormFile? ImageFile { get; set; }
         public string? ImageUrl { get; set; }
         public int DisplayOrder { get; set; }
         public bool IsActive { get; set; } = true;
@@ -31,3 +31,4 @@ namespace Restaurant.Domain.Entities
         }
     }
 }
+

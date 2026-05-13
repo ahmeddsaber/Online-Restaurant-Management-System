@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Application.Contract
 {
-    public interface ITableRepo : IGenaricRepository<Table>
+    public interface ITableRepo : IGenericRepository<Table>
     {
         Task<IEnumerable<Table>> GetAvailableTablesAsync();
         Task<Table?> GetTableByNumberAsync(string tableNumber);
         Task<Table?> GetTableWithCurrentOrderAsync(int tableId);
     }
 }
+

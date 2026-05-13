@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Infrastructure.Repository
 {
-    public class PaymentRepository : GenaricRepository<Payment>, IPaymentRepo
+    public class PaymentRepository : GenericRepository<Payment>, IPaymentRepo
     {
         private readonly ApplicationDbContext _context;
 
@@ -45,3 +45,4 @@ namespace Restaurant.Infrastructure.Repository
         }
     }
 }
+

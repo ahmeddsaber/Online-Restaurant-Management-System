@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Restaurant.Application.Contract;
 using Restaurant.Domain.Entities;
 using Restaurant.Infrastructure.DbContext;
@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Infrastructure.Repository
 {
-    public class OrderItemRepository : GenaricRepository<OrderItem>, IOrderItemRepo
+    public class OrderItemRepository : GenericRepository<OrderItem>, IOrderItemRepo
     {
         private readonly ApplicationDbContext _context;
 
@@ -50,8 +50,10 @@ namespace Restaurant.Infrastructure.Repository
             if (orderItem == null)
                 return false;
 
-            _context.OrderItems.Remove(orderItem);
-            return await _context.SaveChangesAsync() > 0;
+            orderItem.IsDeleted = true;
+            _context.OrderItems.Update(orderItem);
+            return true;
         }
     }
 }
+

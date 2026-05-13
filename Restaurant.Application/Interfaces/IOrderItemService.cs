@@ -17,3 +17,4 @@ namespace Restaurant.Application.Interfaces
         Task<bool> DeleteOrderItemAsync(int orderItemId);
     }
 }
+

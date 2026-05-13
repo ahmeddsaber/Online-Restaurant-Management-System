@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Application.Contract.payment
 {
-    public interface IPaymentRepo : IGenaricRepository<Payment>
+    public interface IPaymentRepo : IGenericRepository<Payment>
     {
         Task<Payment?> GetByOrderIdAsync(int orderId);
         Task<Payment?> GetByTransactionIdAsync(string transactionId);
         Task<IEnumerable<Payment>> GetUserPaymentsAsync(string userId, int skip, int take);
     }
 }
+

@@ -14,3 +14,4 @@ namespace Restaurant.Application.Interfaces.Payment
         Task<bool> RefundPaymentAsync(string paymentIntentId, decimal amount);
     }   
 }
+

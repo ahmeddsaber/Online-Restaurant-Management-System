@@ -20,3 +20,4 @@ namespace Restaurant.Infrastructure.Migrations
         }
     }
 }
+

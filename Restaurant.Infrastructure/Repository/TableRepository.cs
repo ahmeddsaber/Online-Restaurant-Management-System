@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Infrastructure.Repository
 {
-    public class TableRepository : GenaricRepository<Table>, ITableRepo
+    public class TableRepository : GenericRepository<Table>, ITableRepo
     {
         private readonly ApplicationDbContext _context;
 
@@ -42,3 +42,4 @@ namespace Restaurant.Infrastructure.Repository
         }
     }
 }
+

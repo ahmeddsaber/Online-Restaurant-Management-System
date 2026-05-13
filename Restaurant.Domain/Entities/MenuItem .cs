@@ -46,3 +46,4 @@ namespace Restaurant.Domain.Entities
         }
     }
 }
+

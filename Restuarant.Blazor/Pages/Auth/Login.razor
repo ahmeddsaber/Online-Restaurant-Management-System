@@ -1,0 +1,268 @@
+@page "/login"
+@layout AuthLayout
+@using Restuarant.Blazor.Models.Auth
+@inject IAuthApiService AuthApi
+@inject NavigationManager NavManager
+@inject ILocalStorageService Storage
+
+<PageTitle>@(_isRtl ? "تسجيل الدخول - Gourmet Hub" : "Login - Gourmet Hub")</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-left">
+        <div class="auth-brand">
+            <i class="bi bi-shop fs-1" style="color:#f4a261;"></i>
+            <h4 class="fw-bold mt-3 text-white">Gourmet Hub</h4>
+            <p class="mt-2" style="color:rgba(255,255,255,0.65);">
+                @(_isRtl ? "نظام إدارة المطعم الاحترافي" : "Professional Restaurant Management System")
+            </p>
+        </div>
+        <div class="auth-features">
+            <div class="feature-item">
+                <i class="bi bi-speedometer2" style="color:#f4a261;"></i>
+                <span>@(_isRtl ? "أداء عالي" : "High Performance")</span>
+            </div>
+            <div class="feature-item">
+                <i class="bi bi-shield-check" style="color:#f4a261;"></i>
+                <span>@(_isRtl ? "آمن ومحمي" : "Secure & Protected")</span>
+            </div>
+            <div class="feature-item">
+                <i class="bi bi-laptop" style="color:#f4a261;"></i>
+                <span>@(_isRtl ? "يعمل على جميع الأجهزة" : "Multi-Platform")</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-card">
+        <div class="auth-form-header">
+            <h5 class="fw-bold" style="color:#1a1a2e;">
+                @(_isRtl ? "مرحباً بك" : "Welcome Back")
+            </h5>
+            <small class="text-muted">
+                @(_isRtl ? "سجّل دخولك للمتابعة" : "Sign in to your account")
+            </small>
+        </div>
+
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <div class="alert alert-danger alert-dismissible fade show mb-4 py-2" role="alert">
+                <small>@_errorMessage</small>
+                <button type="button" class="btn-close" style="padding: 0.8rem;" @onclick="() => _errorMessage = string.Empty"></button>
+            </div>
+        }
+
+        <EditForm Model="_loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label fw-bold small">@(_isRtl ? "البريد الإلكتروني" : "Email Address")</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-envelope"></i></span>
+                    <InputText @bind-Value="_loginModel.Email" class="form-control" type="email" required />
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label fw-bold small">@(_isRtl ? "كلمة المرور" : "Password")</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-lock"></i></span>
+                    <InputText @bind-Value="_loginModel.Password" class="form-control" type="@(_showPassword ? "text" : "password")" required />
+                    <button class="btn btn-outline-secondary" type="button" @onclick="() => _showPassword = !_showPassword">
+                        <i class="bi @(_showPassword ? "bi-eye-slash" : "bi-eye")"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-options mb-4">
+                <div class="form-check">
+                    <InputCheckbox @bind-Value="_loginModel.RememberMe" class="form-check-input" id="rememberMe" />
+                    <label class="form-check-label small" for="rememberMe">
+                        @(_isRtl ? "تذكرني" : "Remember me")
+                    </label>
+                </div>
+                <a href="/forgot-password" class="text-primary text-decoration-none small fw-semibold">
+                    @(_isRtl ? "نسيت كلمة المرور؟" : "Forgot password?")
+                </a>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 login-btn" disabled="@_isLoading">
+                @if (_isLoading)
+                {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    @(_isRtl ? "جارٍ تسجيل الدخول..." : "Signing in...")
+                }
+                else
+                {
+                    @(_isRtl ? "تسجيل الدخول" : "Sign In")
+                }
+            </button>
+        </EditForm>
+
+        <hr class="my-4" />
+
+        <div class="auth-footer text-center">
+            <small class="text-muted">
+                @(_isRtl ? "ليس لديك حساب؟" : "Don't have an account?")
+                <a href="/register" class="text-primary text-decoration-none fw-bold ms-1">
+                    @(_isRtl ? "سجّل الآن" : "Register")
+                </a>
+            </small>
+        </div>
+
+        <!-- Language Toggle -->
+        <div class="lang-toggle text-center mt-3">
+            <button class="btn btn-sm btn-link text-muted text-decoration-none" @onclick="ToggleLang">
+                <i class="bi bi-globe me-1"></i> @(_isRtl ? "English" : "العربية")
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-container {
+        display: flex;
+        min-height: 100vh;
+        background: #f4f5f7;
+    }
+
+    .auth-left {
+        flex: 1;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 60px;
+        text-align: center;
+    }
+
+    .auth-brand {
+        margin-bottom: 48px;
+        animation: fadeInDown 0.6s ease;
+    }
+
+    .auth-features {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        animation: fadeIn 0.8s ease 0.3s both;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: rgba(255,255,255,0.8);
+        font-size: 1rem;
+        background: rgba(255,255,255,0.06);
+        padding: 12px 20px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.08);
+        backdrop-filter: blur(4px);
+    }
+
+    .auth-card {
+        width: 480px;
+        background: white;
+        padding: 48px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-shadow: -8px 0 40px rgba(0,0,0,0.08);
+        animation: fadeInRight 0.5s ease;
+    }
+
+    .auth-form-header {
+        margin-bottom: 32px;
+    }
+
+    .form-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .login-btn {
+        height: 48px;
+        font-weight: 700;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #e63946, #c1121f);
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .login-btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(230,57,70,0.4);
+    }
+
+    @@keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @@keyframes fadeInRight {
+        from { opacity: 0; transform: translateX(20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @@media (max-width: 768px) {
+        .auth-container { flex-direction: column; }
+        .auth-left { display: none; }
+        .auth-card { width: 100%; padding: 32px 24px; }
+    }
+</style>
+
+@code {
+    private LoginRequest _loginModel = new();
+    private bool _isLoading = false;
+    private bool _showPassword = false;
+    private bool _isRtl = false;
+    private string _errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var culture = await Storage.GetItemAsync("culture");
+        _isRtl = culture == "ar";
+    }
+
+    async Task HandleLogin()
+    {
+        _isLoading = true;
+        _errorMessage = string.Empty;
+
+        try
+        {
+            var result = await AuthApi.LoginAsync(_loginModel);
+
+            if (result?.Success == true)
+            {
+                NavManager.NavigateTo("/");
+            }
+            else
+            {
+                _errorMessage = result?.Message ?? (_isRtl ? "بيانات الدخول غير صحيحة" : "Invalid credentials");
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = _isRtl ? "حدث خطأ، حاول مجدداً" : "An error occurred. Please try again.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    async Task ToggleLang()
+    {
+        _isRtl = !_isRtl;
+        await Storage.SetItemAsync("culture", _isRtl ? "ar" : "en");
+    }
+}

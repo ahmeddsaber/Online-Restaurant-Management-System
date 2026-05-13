@@ -10,7 +10,7 @@ namespace Restaurant.Application.Contract
 {
     public interface IUnitOfWork : IDisposable
     {
-        IGenaricRepository<TEntity> Repository<TEntity>() where TEntity : BaseEntity;
+        IGenericRepository<TEntity> Repository<TEntity>() where TEntity : BaseEntity;
         IMenuCategoryRepo MenuCategoryRepo { get; }
         IMenuItemRepo MenuItem { get; }
         IOrderRepo Order { get; }   
@@ -23,3 +23,4 @@ namespace Restaurant.Application.Contract
         
     }
 }
+

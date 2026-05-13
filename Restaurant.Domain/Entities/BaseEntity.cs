@@ -18,3 +18,4 @@ namespace Restaurant.Domain.Entities
         public string? DeletedBy { get; set; }
     }
 }
+

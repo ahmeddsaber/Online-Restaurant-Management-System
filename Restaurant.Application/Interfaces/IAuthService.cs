@@ -24,5 +24,10 @@ namespace Restaurant.Application.Interfaces
         Task<bool> UpdateProfileAsync(string userId, UpdateProfileDto dto);
         Task<bool> ChangePasswordAsync(string userId, ChangePasswordDto dto);
         Task<bool> UpdateLanguageAsync(string userId, UpdateLanguageDto dto);
+
+        // Password Recovery
+        Task<ForgotPasswordResponseDto> ForgotPasswordAsync(ForgotPasswordDto dto);
+        Task<bool> ResetPasswordAsync(ResetPasswordDto dto);
     }
 }
+

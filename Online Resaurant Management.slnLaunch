@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "Restaurant.API\\Restaurant.API.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Restuarant.Blazor\\Restuarant.Blazor.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

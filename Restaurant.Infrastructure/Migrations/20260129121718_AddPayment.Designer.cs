@@ -860,3 +860,4 @@ namespace Restaurant.Infrastructure.Migrations
         }
     }
 }
+

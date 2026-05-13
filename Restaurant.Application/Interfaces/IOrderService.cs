@@ -1,4 +1,5 @@
 ﻿using Restaurant.Application.DTOS.Admin;
+using Restaurant.Application.DTOS.Common; // Added for Pagination
 using Restaurant.Application.DTOS.Customer;
 using Restaurant.Application.DTOS.Manager;
 using Restaurant.Application.DTOS.Staff;
@@ -20,14 +21,14 @@ namespace Restaurant.Application.Interfaces
         Task<IEnumerable<StaffOrderDto>> SearchForStaff(string orderName);
         Task<IEnumerable<CustomerOrderDto>> SearchForCustomer(string orderName);
        
-        Task<IEnumerable<AdminOrderDto>> GetAllOrdersForAdminAsync();
+        Task<PagedResultDto<AdminOrderDto>> GetAllOrdersForAdminAsync(PaginationDto pagination);
         Task<AdminOrderDto?> GetOrderByIdForAdminAsync(int orderId);
         Task<IEnumerable<AdminOrderDto>> GetOrdersByStatusForAdminAsync(OrderStatus status);
         Task<IEnumerable<AdminOrderDto>> GetOrdersByDateRangeForAdminAsync(DateTime startDate, DateTime endDate);
         Task<bool> DeleteOrderAsync(int orderId);
 
         // Manager Functions
-        Task<IEnumerable<ManagerOrderDto>> GetAllOrdersForManagerAsync();
+        Task<PagedResultDto<ManagerOrderDto>> GetAllOrdersForManagerAsync(PaginationDto pagination);
         Task<ManagerOrderDto?> GetOrderByIdForManagerAsync(int orderId);
         Task<bool> UpdateOrderStatusAsync(UpdateOrderStatusDto dto);
         Task<IEnumerable<ManagerOrderDto>> GetActiveOrdersForManagerAsync();
@@ -52,3 +53,4 @@ namespace Restaurant.Application.Interfaces
     }
 
 }
+

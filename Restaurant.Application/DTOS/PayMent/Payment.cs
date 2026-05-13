@@ -59,3 +59,4 @@ namespace Restaurant.Application.DTOS.PayMent
         public string OrderNumber { get; set; } = string.Empty;
     }
 }
+

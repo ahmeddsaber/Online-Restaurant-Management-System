@@ -26,3 +26,4 @@ namespace Restaurant.Application.Interfaces
         Task<ApiResponseDto<bool>> UpdateTableAvailabilityAsync(UpdateTableAvailabilityDto dto);
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using Restaurant.Application.Contract;
+using Restaurant.Application.Contract;
 using Restaurant.Application.DTOS.Admin;
 using Restaurant.Application.DTOS.Customer;
 using Restaurant.Application.DTOS.Manager;
@@ -12,10 +12,12 @@ namespace Restaurant.Application.Services
     public class MenuItemService : IMenuItemService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IImageService _imageService;
 
-        public MenuItemService(IUnitOfWork unitOfWork)
+        public MenuItemService(IUnitOfWork unitOfWork, IImageService imageService)
         {
             _unitOfWork = unitOfWork;
+            _imageService = imageService;
         }
 
         // ===================== Mapping =====================
@@ -87,8 +89,6 @@ namespace Restaurant.Application.Services
                 .Select(MapToCustomer);
         }
 
-
-
         public async Task<IEnumerable<CustomerMenuItemDto>> GetItemsSortedByPrice(bool ascending)
             => (await _unitOfWork.MenuItem.GetItemsSortedByPrice(ascending))
                 .Select(MapToCustomer);
@@ -127,11 +127,9 @@ namespace Restaurant.Application.Services
         {
             var item = await _unitOfWork.MenuItem.TopSellingItemDto();
             if (item == null)
-            {
                 throw new NotFoundException("No menu items found");
-            }
 
-                return new TopItemDto
+            return new TopItemDto
             {
                 ItemNameEn = item.NameEn,
                 ItemNameAr = item.NameAr,
@@ -180,9 +178,14 @@ namespace Restaurant.Application.Services
                 Price = dto.Price,
                 PreparationTime = dto.PreparationTime,
                 CategoryId = dto.CategoryId,
-                ImageFile = dto.ImageFile,
                 IsAvailable = dto.IsAvailable
             };
+
+            // ✅ FIXED: Upload image via IImageService if a file was provided
+            if (dto.ImageFile != null && dto.ImageFile.Length > 0)
+            {
+                entity.ImageUrl = await _imageService.UploadAsync(dto.ImageFile, "menu-items");
+            }
 
             await _unitOfWork.MenuItem.Create(entity);
             await _unitOfWork.SaveChangesAsync();
@@ -199,6 +202,7 @@ namespace Restaurant.Application.Services
             if (item == null || item.IsDeleted)
                 throw new NotFoundException("Menu item not found");
 
+            // ✅ FIXED: Explicit field-by-field update — never blindly overwrite with DTO
             item.NameEn = dto.NameEn.Trim();
             item.NameAr = dto.NameAr.Trim();
             item.DescriptionEn = dto.DescriptionEn;
@@ -206,8 +210,19 @@ namespace Restaurant.Application.Services
             item.Price = dto.Price;
             item.PreparationTime = dto.PreparationTime;
             item.CategoryId = dto.CategoryId;
-            item.ImageFile = dto.ImageFile;
             item.IsAvailable = dto.IsAvailable;
+
+            // ✅ FIXED: Only update ImageUrl if a new file is explicitly provided.
+            // If no file is sent, the existing ImageUrl is preserved — never nullified.
+            if (dto.ImageFile != null && dto.ImageFile.Length > 0)
+            {
+                // Optionally delete the old image to prevent orphaned files on disk
+                if (!string.IsNullOrEmpty(item.ImageUrl))
+                    await _imageService.DeleteAsync(item.ImageUrl);
+
+                item.ImageUrl = await _imageService.UploadAsync(dto.ImageFile, "menu-items");
+            }
+            // else: item.ImageUrl remains unchanged from what was already in the DB
 
             _unitOfWork.MenuItem.Update(item);
             await _unitOfWork.SaveChangesAsync();
@@ -228,6 +243,19 @@ namespace Restaurant.Application.Services
 
             _unitOfWork.MenuItem.Update(item);
             await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task<DTOS.Common.PagedResultDto<AdminMenuItemDto>> GetPaginatedMenuItems(DTOS.Common.PaginationDto pagination, string? search = null)
+        {
+            var (items, totalCount) = await _unitOfWork.MenuItem.GetPaginatedItemsAsync(pagination.Skip, pagination.PageSize, search);
+
+            return new DTOS.Common.PagedResultDto<AdminMenuItemDto>
+            {
+                Items = items.Select(MapToAdmin).ToList(),
+                TotalCount = totalCount,
+                PageNumber = pagination.PageNumber,
+                PageSize = pagination.PageSize
+            };
         }
     }
 }

@@ -1,0 +1,141 @@
+@inherits LayoutComponentBase
+@implements IDisposable
+
+<div class="@(_isDark ? "bg-dark text-white" : "bg-light text-dark")" style="min-height: 100vh; display: flex; flex-direction: column;">
+    <!-- TOP APP BAR -->
+    <nav class="navbar navbar-expand-lg @(_isDark ? "navbar-dark bg-dark border-bottom border-secondary" : "navbar-light bg-white shadow-sm")" dir="@(_isRtl ? "rtl" : "ltr")">
+        <div class="container-fluid">
+            <!-- Toggler for sidebar (mobile) -->
+            <button class="btn btn-outline-secondary me-2 d-md-none" @onclick="DrawerToggle">
+                <i class="bi bi-list"></i>
+            </button>
+            
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <i class="bi bi-shop text-warning mx-2"></i>
+                <span class="fw-bold">Gourmet Hub</span>
+            </a>
+
+            <div class="d-flex align-items-center ms-auto">
+                <button class="btn btn-sm btn-outline-warning mx-2" @onclick="ToggleLanguage">
+                    @(_isRtl ? "EN" : "عر")
+                </button>
+                <button class="btn btn-sm btn-outline-secondary mx-3" @onclick="() => _isDark = !_isDark">
+                    <i class="bi @(_isDark ? "bi-sun" : "bi-moon")"></i>
+                </button>
+                
+                <AuthorizeView>
+                    <Authorized>
+                        <div class="dropdown">
+                            <button class="btn btn-warning btn-sm dropdown-toggle rounded-circle" type="button" data-bs-toggle="dropdown">
+                                <strong>U</strong>
+                            </button>
+                            <ul class="dropdown-menu @(_isRtl ? "dropdown-menu-start" : "dropdown-menu-end") shadow">
+                                <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i> @(_isRtl ? "الملف الشخصي" : "Profile")</a></li>
+                                <li><a class="dropdown-item" href="/settings"><i class="bi bi-gear me-2"></i> @(_isRtl ? "الإعدادات" : "Settings")</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><button class="dropdown-item text-danger" @onclick="HandleLogout"><i class="bi bi-box-arrow-right me-2"></i> @(_isRtl ? "تسجيل الخروج" : "Logout")</button></li>
+                            </ul>
+                        </div>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/login" class="btn btn-outline-primary btn-sm">@(_isRtl ? "تسجيل الدخول" : "Login")</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </div>
+    </nav>
+
+    <div class="d-flex flex-grow-1 overflow-hidden" dir="@(_isRtl ? "rtl" : "ltr")">
+        <!-- SIDEBAR -->
+        <div class="border-end @(_isDark ? "bg-dark shadow border-secondary" : "bg-white shadow-sm") @(_drawerOpen ? "d-block" : "d-none d-md-block")" 
+             style="width: 250px; min-width: 250px; overflow-y: auto;">
+            
+            <div class="p-3 border-bottom @(_isDark ? "border-secondary" : "")">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-egg-fried text-warning fs-4 mx-2"></i>
+                    <div>
+                        <h6 class="mb-0 fw-bold">Gourmet Hub</h6>
+                        <small class="text-muted">@(_isRtl ? "إدارة المطعم" : "Management System")</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="list-group list-group-flush p-2">
+                <NavLink class="@($"list-group-item list-group-item-action rounded border-0 mb-1 {(_isDark ? "bg-dark text-white" : "")}")" href="/" Match="NavLinkMatch.All">
+                    <i class="bi bi-speedometer2 mx-2"></i> @(_isRtl ? "لوحة التحكم" : "Dashboard")
+                </NavLink>
+                <NavLink class="@($"list-group-item list-group-item-action rounded border-0 mb-1 {(_isDark ? "bg-dark text-white" : "")}")" href="/orders">
+                    <i class="bi bi-receipt mx-2"></i> @(_isRtl ? "الطلبات" : "Orders")
+                </NavLink>
+                
+                <div class="nav-item mb-1 mt-2">
+                    <div class="px-3 pb-1 text-muted small fw-bold">@(_isRtl ? "إدارة القائمة" : "MENU MANAGEMENT")</div>
+                    <NavLink class="@($"list-group-item list-group-item-action rounded border-0 mb-1 mx-3 {(_isDark ? "bg-dark text-white" : "")}")" style="width: auto;" href="/menu/items">
+                        <i class="bi bi-card-list mx-2"></i> @(_isRtl ? "أصناف القائمة" : "Menu Items")
+                    </NavLink>
+                    <NavLink class="@($"list-group-item list-group-item-action rounded border-0 mb-1 mx-3 {(_isDark ? "bg-dark text-white" : "")}")" style="width: auto;" href="/menu/categories">
+                        <i class="bi bi-folder mx-2"></i> @(_isRtl ? "الفئات" : "Categories")
+                    </NavLink>
+                </div>
+
+                <AuthorizeView Roles="Admin">
+                    <div class="nav-item mb-1 mt-2">
+                        <div class="px-3 pb-1 text-muted small fw-bold">@(_isRtl ? "المستخدمون" : "USERS & ROLES")</div>
+                        <NavLink class="@($"list-group-item list-group-item-action rounded border-0 mb-1 mx-3 {(_isDark ? "bg-dark text-white" : "")}")" style="width: auto;" href="/users">
+                            <i class="bi bi-people mx-2"></i> @(_isRtl ? "المستخدمون" : "All Users")
+                        </NavLink>
+                    </div>
+                </AuthorizeView>
+
+                <NavLink class="@($"list-group-item list-group-item-action rounded border-0 mb-1 mt-2 {(_isDark ? "bg-dark text-white" : "")}")" href="/settings">
+                    <i class="bi bi-gear mx-2"></i> @(_isRtl ? "الإعدادات" : "Settings")
+                </NavLink>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-grow-1 p-4 overflow-auto">
+            <div class="container-fluid">
+                @Body
+            </div>
+        </main>
+    </div>
+</div>
+
+@code {
+    [Inject] private NavigationManager? NavManager { get; set; }
+    [Inject] private IAuthApiService? AuthApi { get; set; }
+
+    bool _drawerOpen = false;
+    bool _isDark = false;
+    bool _isRtl = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Storage != null)
+        {
+            var dark = await Storage.GetItemAsync("isDark");
+            var culture = await Storage.GetItemAsync("culture");
+            _isDark = dark == "true";
+            _isRtl = culture == "ar";
+        }
+    }
+
+    void DrawerToggle() => _drawerOpen = !_drawerOpen;
+
+    async Task ToggleLanguage()
+    {
+        _isRtl = !_isRtl;
+        if (Storage != null)
+            await Storage.SetItemAsync("culture", _isRtl ? "ar" : "en");
+    }
+
+    async Task HandleLogout()
+    {
+        if (AuthApi != null)
+            await AuthApi.LogoutAsync();
+        NavManager?.NavigateTo("/login");
+    }
+
+    public void Dispose() { }
+}

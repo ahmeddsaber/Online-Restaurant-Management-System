@@ -1,0 +1,126 @@
+@page "/settings"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject ILocalStorageService Storage
+
+<PageTitle>@(_isRtl ? "الإعدادات - Gourmet Hub" : "Settings - Gourmet Hub")</PageTitle>
+
+@if (!string.IsNullOrEmpty(_statusMessage))
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @_statusMessage
+        <button type="button" class="btn-close" @onclick="() => _statusMessage = string.Empty"></button>
+    </div>
+}
+
+<h4 class="fw-bold mb-4" style="color:#1a1a2e;">
+    @(_isRtl ? "الإعدادات" : "Settings")
+</h4>
+
+<div class="row g-4">
+    <!-- APPEARANCE SETTINGS -->
+    <div class="col-12 col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-palette me-2 text-primary"></i>
+                    @(_isRtl ? "المظهر" : "Appearance")
+                </h5>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-1">@(_isRtl ? "اللغة" : "Language")</h6>
+                        <small class="text-muted">@(_isRtl ? "اختر اللغة المفضلة" : "Choose preferred language")</small>
+                    </div>
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="lang" id="langEn" autocomplete="off" 
+                               checked="@(_culture == "en")" @onchange="@(() => _culture = "en")">
+                        <label class="btn btn-outline-primary btn-sm" for="langEn">English</label>
+
+                        <input type="radio" class="btn-check" name="lang" id="langAr" autocomplete="off" 
+                               checked="@(_culture == "ar")" @onchange="@(() => _culture = "ar")">
+                        <label class="btn btn-outline-primary btn-sm" for="langAr">العربية</label>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-1">@(_isRtl ? "الوضع الليلي" : "Dark Mode")</h6>
+                        <small class="text-muted">@(_isRtl ? "تفعيل الوضع الداكن" : "Enable dark theme")</small>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="darkModeSwitch" style="transform: scale(1.2);" @bind="_darkMode" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div class="col-12 col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 text-white h-100" style="background:linear-gradient(135deg,#1a1a2e,#0f3460);">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4">
+                    <i class="bi bi-info-circle me-2" style="color:#f4a261;"></i>
+                    @(_isRtl ? "عن النظام" : "About System")
+                </h5>
+
+                <div class="d-flex flex-column gap-3">
+                    <div class="d-flex justify-content-between border-bottom border-light border-opacity-10 pb-2">
+                        <small class="text-white-50">@(_isRtl ? "النسخة" : "Version")</small>
+                        <span class="fw-bold">v1.0.0</span>
+                    </div>
+                    <div class="d-flex justify-content-between border-bottom border-light border-opacity-10 pb-2">
+                        <small class="text-white-50">@(_isRtl ? "الإطار" : "Framework")</small>
+                        <span>Blazor WebAssembly .NET 9</span>
+                    </div>
+                    <div class="d-flex justify-content-between border-bottom border-light border-opacity-10 pb-2">
+                        <small class="text-white-50">UI Library</small>
+                        <span>Bootstrap 5</span>
+                    </div>
+                    <div class="d-flex justify-content-between pb-2">
+                        <small class="text-white-50">@(_isRtl ? "المطوّر" : "Developer")</small>
+                        <span>Gourmet Hub Team</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <button class="btn btn-primary fw-bold" style="border-radius:10px; height:44px; min-width:160px;" @onclick="SaveSettings">
+        @(_isRtl ? "حفظ الإعدادات" : "Save Settings")
+    </button>
+</div>
+
+@code {
+    private bool _isRtl = false;
+    private string _culture = "en";
+    private bool _darkMode = false;
+    private string _statusMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var c = await Storage.GetItemAsync("culture");
+        var dark = await Storage.GetItemAsync("isDark");
+        _culture = c ?? "en";
+        _isRtl = _culture == "ar";
+        _darkMode = dark == "true";
+    }
+
+    async Task SaveSettings()
+    {
+        _isRtl = _culture == "ar";
+        await Storage.SetItemAsync("culture", _culture);
+        await Storage.SetItemAsync("isDark", _darkMode.ToString().ToLower());
+        
+        _statusMessage = _isRtl ? "تم حفظ الإعدادات" : "Settings saved!";
+        StateHasChanged();
+        await Task.Delay(3000);
+        _statusMessage = "";
+        StateHasChanged();
+    }
+}

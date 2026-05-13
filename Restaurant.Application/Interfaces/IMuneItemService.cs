@@ -1,4 +1,4 @@
-﻿
+
 using Restaurant.Application.DTOS.Admin;
 using Restaurant.Application.DTOS.Customer;
 using Restaurant.Application.DTOS.Manager;
@@ -36,6 +36,7 @@ namespace Restaurant.Application.Interfaces
         public Task<AdminCreateMenuItemDto> CreateItemMenu(AdminCreateMenuItemDto menuItem);
         public Task<AdminUpdateMenuItemDto> UpdateMenuItem(AdminUpdateMenuItemDto menuItem);
         public Task DeleteMenuItem(int id);
-
+        public Task<DTOS.Common.PagedResultDto<AdminMenuItemDto>> GetPaginatedMenuItems(DTOS.Common.PaginationDto pagination, string? search = null);
     }
 }
+

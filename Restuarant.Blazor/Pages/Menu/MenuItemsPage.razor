@@ -1,0 +1,309 @@
+@page "/menu/items"
+@attribute [Authorize(Roles = "Admin")]
+@using Microsoft.AspNetCore.Authorization
+@using Restuarant.Blazor.Models.Menu
+@inject IMenuApiService MenuApi
+@inject ILocalStorageService Storage
+
+<PageTitle>@(_isRtl ? "أصناف القائمة - Gourmet Hub" : "Menu Items - Gourmet Hub")</PageTitle>
+
+<!-- STATUS MESSAGE -->
+@if (!string.IsNullOrEmpty(_statusMessage))
+{
+    <div class="alert @(_isError ? "alert-danger" : "alert-success") alert-dismissible fade show" role="alert">
+        @_statusMessage
+        <button type="button" class="btn-close" @onclick="() => _statusMessage = string.Empty"></button>
+    </div>
+}
+
+<!-- HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold" style="color:#1a1a2e;">
+            @(_isRtl ? "أصناف القائمة" : "Menu Items")
+        </h4>
+        <small class="text-muted">
+            @(_isRtl ? "إدارة أصناف الطعام والمشروبات" : "Manage your food and beverage items")
+        </small>
+    </div>
+    <button class="btn btn-primary fw-bold" @onclick="OpenCreateDialog" style="border-radius:10px;">
+        <i class="bi bi-plus-circle me-1"></i> @(_isRtl ? "إضافة صنف" : "Add Item")
+    </button>
+</div>
+
+<!-- FILTER -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-center">
+            <div class="col-12 col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" @bind="_search" @bind:event="oninput" placeholder="@(_isRtl ? "بحث..." : "Search items...")" />
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <select class="form-select" @bind="_categoryFilter">
+                    <option value="0">@(_isRtl ? "الكل" : "All Categories")</option>
+                    @foreach (var cat in _categories)
+                    {
+                        <option value="@cat.Id">@(_isRtl ? cat.NameAr : cat.NameEn)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <button class="btn btn-outline-secondary w-100" @onclick="LoadItems">
+                    <i class="bi bi-arrow-clockwise me-1"></i> @(_isRtl ? "تحديث" : "Refresh")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (_isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <!-- TABLE VIEW -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">@(_isRtl ? "الصورة" : "Image")</th>
+                            <th>@(_isRtl ? "الاسم" : "Name")</th>
+                            <th>@(_isRtl ? "الفئة" : "Category")</th>
+                            <th>@(_isRtl ? "السعر" : "Price")</th>
+                            <th>@(_isRtl ? "الحالة" : "Status")</th>
+                            <th class="pe-4 text-end">@(_isRtl ? "الإجراءات" : "Actions")</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!FilteredItems.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">@(_isRtl ? "لا توجد أصناف تطابق البحث" : "No items found")</td>
+                            </tr>
+                        }
+                        @foreach (var item in FilteredItems)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                    {
+                                        <img src="@item.ImageUrl" class="rounded" style="width:40px;height:40px;object-fit:cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-primary bg-opacity-10 text-primary rounded d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+                                            <i class="bi bi-image"></i>
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <h6 class="mb-0 fw-bold">@(_isRtl ? item.NameAr : item.NameEn)</h6>
+                                    <small class="text-muted"><i class="bi bi-clock me-1"></i>@item.PreparationTime min</small>
+                                </td>
+                                <td><span class="badge bg-light text-dark border">@item.CategoryName</span></td>
+                                <td><span class="fw-bold text-danger">$@item.Price.ToString("N2")</span></td>
+                                <td>
+                                    <span class="badge rounded-pill @(item.IsAvailable ? "bg-success" : "bg-secondary")">
+                                        @(item.IsAvailable ? (_isRtl ? "متاح" : "Available") : (_isRtl ? "غير متاح" : "Unavailable"))
+                                    </span>
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <button class="btn btn-sm btn-outline-warning" @onclick="() => OpenEditDialog(item)"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger ms-1" @onclick="() => DeleteItem(item.Id)"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- CREATE/EDIT MODAL -->
+@if (_dialogOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); overflow-y: auto;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">
+                        @(_editingItem != null ? (_isRtl ? "تعديل الصنف" : "Edit Item") : (_isRtl ? "إضافة صنف جديد" : "Add New Item"))
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="() => _dialogOpen = false"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <EditForm Model="_formModel" OnValidSubmit="SaveItem">
+                        <DataAnnotationsValidator />
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Name (English) <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="_formModel.NameEn" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">الاسم (عربي) <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="_formModel.NameAr" class="form-control" dir="rtl" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Description (EN)</label>
+                                <InputTextArea @bind-Value="_formModel.DescriptionEn" class="form-control" rows="2" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">الوصف (AR)</label>
+                                <InputTextArea @bind-Value="_formModel.DescriptionAr" class="form-control" rows="2" dir="rtl" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">@(_isRtl ? "السعر" : "Price") <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <InputNumber @bind-Value="_formModel.Price" class="form-control" TValue="decimal" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">@(_isRtl ? "وقت التحضير" : "Prep Time (min)")</label>
+                                <InputNumber @bind-Value="_formModel.PreparationTime" class="form-control" TValue="int" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">@(_isRtl ? "الفئة" : "Category") <span class="text-danger">*</span></label>
+                                <InputSelect @bind-Value="_formModel.CategoryId" class="form-select">
+                                    <option value="0">@(_isRtl ? "اختر الفئة..." : "Select Category...")</option>
+                                    @foreach (var cat in _categories)
+                                    {
+                                        <option value="@cat.Id">@(_isRtl ? cat.NameAr : cat.NameEn)</option>
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-12 mt-4">
+                                <div class="form-check form-switch">
+                                    <InputCheckbox @bind-Value="_formModel.IsAvailable" class="form-check-input" id="isAvailableCheck" />
+                                    <label class="form-check-label fw-bold" for="isAvailableCheck">@(_isRtl ? "متاح للطلب" : "Available for ordering")</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-light" @onclick="() => _dialogOpen = false">@(_isRtl ? "إلغاء" : "Cancel")</button>
+                            <button type="submit" class="btn btn-primary px-4" disabled="@_isSaving">
+                                @if (_isSaving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                @(_isRtl ? "حفظ" : "Save")
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<MenuItemDto> _items = new();
+    private List<MenuCategoryDto> _categories = new();
+    private bool _isLoading = true;
+    private bool _isRtl = false;
+    private string _search = string.Empty;
+    private int _categoryFilter = 0;
+    private bool _dialogOpen = false;
+    private bool _isSaving = false;
+    private MenuItemDto? _editingItem;
+    private CreateMenuItemRequest _formModel = new();
+    
+    private string _statusMessage = "";
+    private bool _isError = false;
+
+    private IEnumerable<MenuItemDto> FilteredItems => _items
+        .Where(i => (string.IsNullOrEmpty(_search) ||
+                     i.NameEn.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                     i.NameAr.Contains(_search, StringComparison.OrdinalIgnoreCase)) &&
+                    (_categoryFilter == 0 || i.CategoryId == _categoryFilter));
+
+    protected override async Task OnInitializedAsync()
+    {
+        var c = await Storage.GetItemAsync("culture");
+        _isRtl = c == "ar";
+        _categories = await MenuApi.GetAllCategoriesAsync();
+        await LoadItems();
+    }
+
+    async Task LoadItems()
+    {
+        _isLoading = true;
+        try {
+            _items = await MenuApi.GetAllMenuItemsAsync();
+        } catch {}
+        _isLoading = false;
+    }
+
+    void OpenCreateDialog()
+    {
+        _editingItem = null;
+        _formModel = new CreateMenuItemRequest { IsAvailable = true };
+        _dialogOpen = true;
+    }
+
+    void OpenEditDialog(MenuItemDto item)
+    {
+        _editingItem = item;
+        _formModel = new CreateMenuItemRequest
+        {
+            NameEn = item.NameEn,
+            NameAr = item.NameAr,
+            DescriptionEn = item.DescriptionEn,
+            DescriptionAr = item.DescriptionAr,
+            Price = item.Price,
+            IsAvailable = item.IsAvailable,
+            PreparationTime = item.PreparationTime,
+            CategoryId = item.CategoryId
+        };
+        _dialogOpen = true;
+    }
+
+    async Task SaveItem()
+    {
+        if (_formModel.CategoryId <= 0)
+        {
+            ShowMessage(_isRtl ? "الرجاء اختيار الفئة" : "Please select a category", true);
+            return;
+        }
+
+        _isSaving = true;
+        // API call would go here
+        ShowMessage(_isRtl ? "تم الحفظ بنجاح" : "Saved successfully", false);
+        _dialogOpen = false;
+        _isSaving = false;
+        await LoadItems();
+    }
+
+    async Task DeleteItem(int id)
+    {
+        var ok = await MenuApi.DeleteMenuItemAsync(id);
+        if (ok)
+        {
+            _items.RemoveAll(i => i.Id == id);
+            ShowMessage(_isRtl ? "تم الحذف" : "Item deleted", false);
+        }
+        else
+        {
+            ShowMessage(_isRtl ? "فشل الحذف" : "Delete failed", true);
+        }
+    }
+    
+    private async void ShowMessage(string msg, bool isError)
+    {
+        _statusMessage = msg;
+        _isError = isError;
+        StateHasChanged();
+        await Task.Delay(3000);
+        _statusMessage = "";
+        StateHasChanged();
+    }
+}

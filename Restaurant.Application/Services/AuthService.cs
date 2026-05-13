@@ -229,6 +229,55 @@ namespace Restaurant.Application.Services
         }
 
         // ====================================================================
+        // FORGOT PASSWORD
+        // ====================================================================
+        public async Task<ForgotPasswordResponseDto> ForgotPasswordAsync(ForgotPasswordDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null || user.IsDeleted)
+            {
+                // Don't reveal that the user does not exist
+                return new ForgotPasswordResponseDto
+                {
+                    Message = "If the email exists, a password reset token has been generated."
+                };
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            // In production, send token via email
+            // For now, return token in response for testing
+            return new ForgotPasswordResponseDto
+            {
+                Message = "Password reset token generated successfully",
+                ResetToken = token
+            };
+        }
+
+        // ====================================================================
+        // RESET PASSWORD
+        // ====================================================================
+        public async Task<bool> ResetPasswordAsync(ResetPasswordDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null || user.IsDeleted)
+                throw new InvalidOperationException("Invalid email");
+
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    string.Join(", ", result.Errors.Select(e => e.Description))
+                );
+            }
+
+            // Revoke all existing tokens after password reset
+            await _unitOfWork.RefreshToken.RevokeAllUserTokensAsync(user.Id);
+
+            return true;
+        }
+
+        // ====================================================================
         // PRIVATE HELPER METHODS
         // ====================================================================
 
@@ -321,3 +370,4 @@ namespace Restaurant.Application.Services
         }
     }
 }
+

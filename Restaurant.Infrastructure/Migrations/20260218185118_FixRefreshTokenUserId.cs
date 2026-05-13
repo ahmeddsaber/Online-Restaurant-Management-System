@@ -78,3 +78,4 @@ namespace Restaurant.Infrastructure.Migrations
         }
     }
 }
+

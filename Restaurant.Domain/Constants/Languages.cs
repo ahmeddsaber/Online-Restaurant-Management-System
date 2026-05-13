@@ -19,3 +19,4 @@ namespace Restaurant.Domain.Constants
         }
     }
 }
+

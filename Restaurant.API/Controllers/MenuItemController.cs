@@ -1,375 +1,331 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Restaurant.Application.DTOS.Admin;
+using Restaurant.Application.DTOS.Common;
 using Restaurant.Application.Interfaces;
+using Asp.Versioning;
 
 namespace Restaurant.API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class MenuItemController : ControllerBase
+    /// <summary>
+    /// Menu item management for Admin and Customer
+    /// </summary>
+    [ApiVersion("1.0")]
+    public class MenuItemController : BaseController
     {
-        IMenuItemService muneItemService;
-        public MenuItemController(IMenuItemService muneItemService)
+        private readonly IMenuItemService _menuItemService;
+
+        public MenuItemController(IMenuItemService menuItemService)
         {
-            this.muneItemService = muneItemService;
+            _menuItemService = menuItemService;
         }
-        [Produces("application/json")]
-        [HttpGet("ForAdmin")]
-        [ActionName("GetMenuItems")]
+
+        // =====================================
+        // 🔐 ADMIN ENDPOINTS
+        // =====================================
+
+        /// <summary>
+        /// Get all menu items (Admin view)
+        /// </summary>
+        [HttpGet("all")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetMenuItems()
         {
-            var menuItems = await muneItemService.GetAllMenuItemsAsyncForAdmin();
-            if (menuItems == null || !menuItems.Any())
-            {
-                return NotFound("No menu items found.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-          
-            return Ok(menuItems);
+            var menuItems = await _menuItemService.GetAllMenuItemsAsyncForAdmin();
+            if (!menuItems.Any())
+                return Error("No menu items found", statusCode: 404);
+
+            return Success(menuItems);
         }
-        [HttpGet("GetAllMenuItemForCustomer")]
-        [ActionName("GetMenuItemsForUser")]
-        public async Task<IActionResult> GetMenuItemsForUser()
+
+        /// <summary>
+        /// Get paginated menu items (Admin)
+        /// </summary>
+        [HttpGet("paginated")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetPaginated([FromQuery] PaginationDto pagination, [FromQuery] string? search)
         {
-            var menuItems = await muneItemService.GetItemsforCustomer();
-            if (menuItems == null || !menuItems.Any())
-            {
-                return NotFound("No menu items found.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-          
-            return Ok(menuItems);
+            var result = await _menuItemService.GetPaginatedMenuItems(pagination, search);
+            return Success(result);
         }
-        [Produces("application/json")]
-        [HttpGet("{id}")]
 
-        [ActionName("GetMenuItemById")]
-        public async Task<IActionResult> GetMenuItemById(int id)
-
-
-        {
-            var menuItem = await muneItemService.GetMenuItemByIdAsync(id);
-            return Ok(menuItem);
-        }
-        [Produces("application/json")]
-        [HttpGet("customer/{id}")]
-        [ActionName("GetMenuItemByIdForCustomer")]
-        public async Task<IActionResult> GetMenuItemByIdForCustomer(int id)
-        {
-            var menuItem = await muneItemService.GetMenuItemByIdAsyncForCustomer(id);
-            if (menuItem == null)
-            {
-                return NotFound("Menu item not found.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-
-            }
-         
-
-            return Ok(menuItem);
-        }
-        [Produces("application/json")]
-        [HttpGet("top-selling")]
-        [ActionName("GetTopSellingItem")]
-        public async Task<IActionResult> GetTopSellingItem()
-        {
-            var topItem = await muneItemService.TopSellingItemDto();
-            if (topItem == null)
-            {
-                return NotFound("No top selling item found.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-           
-            return Ok(topItem);
-        }
-        [Produces("application/json")]
+        /// <summary>
+        /// Get available menu items (Admin)
+        /// </summary>
         [HttpGet("available")]
-        [ActionName("GetAvailableMenuItemsForAdmin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAvailableMenuItems()
         {
-            var menuItems = await muneItemService.GetAvailableItemsForCustmer();
+            // ✅ FIXED: Use admin projection (GetAvailableItems), not the customer one
+            var menuItems = await _menuItemService.GetAvailableItems();
             if (menuItems == null || !menuItems.Any())
-            {
-                return NotFound("No available menu items found.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-           
-            return Ok(menuItems);
+                return NotFound(ApiResponseDto<object>.ErrorResponse("No available menu items found."));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItems));
         }
-        [Produces("application/json")]
+
+        /// <summary>
+        /// Get not available menu items (Admin)
+        /// </summary>
         [HttpGet("not-available")]
-        [ActionName("GetNotAvailableMenuItemsForAdmin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetNotAvailableMenuItems()
         {
-            var menuItems = await muneItemService.GetNotAvailableItems();
+            var menuItems = await _menuItemService.GetNotAvailableItems();
             if (menuItems == null || !menuItems.Any())
-            {
-                return NotFound("No not available menu items found.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-          
-            return Ok(menuItems);
-        }
-        [Produces("Application/json")]
-        [HttpGet("Available For Customer")]
-        [ActionName("GetAvailableMenuItemsForCustomer")]
-        public async Task<IActionResult> GetAvailableMenuItemsForCustomer()
-        {
-            var menuItems = await muneItemService.GetAvailableItemsForCustmer();
-            if (menuItems == null || !menuItems.Any())
-            {
-                return NotFound("No available menu items found.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+                return NotFound(ApiResponseDto<object>.ErrorResponse("No unavailable menu items found."));
 
-            return Ok(menuItems);
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItems));
         }
 
-        [Produces("application/json")]
-        [HttpGet("added-in-last-{days}-days")]
-        [ActionName("GetMenuItemsAddedInLastNDaysForCustomer")]
-        public async Task<IActionResult> GetMenuItemsAddedInLastNDays(int days)
+        /// <summary>
+        /// Get top selling items (Admin)
+        /// </summary>
+        [HttpGet("top-selling")]
+        [Authorize(Roles = "Admin,Manager")]
+        public async Task<IActionResult> GetTopSellingItem()
         {
-            var menuItems = await muneItemService.GetItemsAddedInLastNDaysForCustomer(days);
-            if (menuItems == null || !menuItems.Any())
-            {
-                return NotFound("No menu items found added in last " + days + " days.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-         
-            return Ok(menuItems);
+            var topItem = await _menuItemService.TopSellingItemDto();
+            if (topItem == null)
+                return NotFound(ApiResponseDto<object>.ErrorResponse("No top selling item found."));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(topItem));
         }
-        [Produces("Application/json")]
-        [HttpGet("added-in-last-{days}-days For Admin")]
-        [ActionName("GetMenuItemsAddedInLastNDaysForAdmin")]
+
+        /// <summary>
+        /// Get menu items added in last N days (Admin)
+        /// </summary>
+        [HttpGet("added-in-last-days-admin/{days:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetMenuItemsAddedInLastNDaysForAdmin(int days)
         {
-            var menuItems = await muneItemService.GetItemsAddedInLastNDays(days);
+            var menuItems = await _menuItemService.GetItemsAddedInLastNDays(days);
             if (menuItems == null || !menuItems.Any())
-            {
-                return NotFound("No menu items found added in last " + days + " days.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-         
-            return Ok(menuItems);
+                return NotFound(ApiResponseDto<object>.ErrorResponse($"No menu items found added in last {days} days."));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItems));
         }
 
-
-        [Produces("application/json")]
-
-        [HttpGet("GetitemByPriceRange")]
-        [ActionName("GetItemsByPriceRangeForCustomer")]
-        public async Task<IActionResult> GetItemsByPriceRange([FromQuery] decimal minPrice = 50, [FromQuery] decimal maxPrice = 100)
+        /// <summary>
+        /// Search menu items by name (Admin)
+        /// </summary>
+        [HttpGet("search-admin/{name}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SearchItemsByNameForAdmin(string name)
         {
-            var menuItems = await muneItemService.GetItemsByPriceRangeForCustomer(minPrice, maxPrice);
+            var menuItems = await _menuItemService.SearchItemsByNameforAdmin(name);
             if (menuItems == null || !menuItems.Any())
-            {
-                return NotFound("No menu items found in the specified price range.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-         
-            return Ok(menuItems);
+                return NotFound(ApiResponseDto<object>.ErrorResponse($"No menu items found matching: {name}"));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItems));
         }
 
-        [Produces("application/json")]
-        [HttpGet("search/{name}")]
-        [ActionName("SearchItemsByNameforCustomer")]
-        public async Task<IActionResult> SearchItemsByNameforCustomer(string name)
-        {
-            var menuItems = await muneItemService.SearchItemsByNameforCustomer(name);
-            if (menuItems == null || !menuItems.Any())
-            {
-                return NotFound("No menu items found matching the name: " + name);
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-          
-            return Ok(menuItems);
-        }
-        [Produces("Application/json")]
-        [HttpGet("Search{Name}")]
-
-        [ActionName("SearchItemsByDescriptionForAdmin")]
-        public async Task<IActionResult> SearchItemsByDescriptionForAdmin(string name)
-        {
-            var menuItems = await muneItemService.SearchItemsByNameforAdmin(name);
-            if (menuItems == null || !menuItems.Any())
-            {
-                return NotFound("No menu items found matching the description: " + name);
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            
-            return Ok(menuItems);
-        }
-
-
-        [Produces("application/json")]
-        [HttpGet("preparation-time/{minutes}")]
-        [ActionName("GetItemsWithPreparationTimeLessThanForCustomer")]
-        public async Task<IActionResult> GetItemsWithPreparationTimeLessThan(int minutes)
-        {
-            var menuItems = await muneItemService.GetItemsWithPreparationTimeLessThan(minutes);
-            if (menuItems == null || !menuItems.Any())
-            {
-                return NotFound("No menu items found with preparation time less than " + minutes + " minutes.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-           
-            return Ok(menuItems);
-        }
-        [Produces("application/json")]
-        [HttpGet("sort-by-price/{ascending}")]
-        [ActionName("GetItemsSortedByPriceForCustomer")]
-        public async Task<IActionResult> GetItemsSortedByPriceForCustomer(bool ascending)
-        {
-            var menuItems = await muneItemService.GetItemsSortedByPrice(ascending);
-            if (menuItems == null || !menuItems.Any())
-            {
-                return NotFound("No menu items found.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-          
-            return Ok(menuItems);
-        }
-        [Produces("application/json")]
-        [HttpGet("sort-by-preparation-time/{ascending}")]
-        [ActionName("GetItemsSortedByPreparationTimeForCustomer")]
-        public async Task<IActionResult> GetItemsSortedByPreparationTimeForCustomer(bool ascending)
-        {
-            var menuItems = await muneItemService.GetItemsSortedByPreparationTime(ascending);
-            if (menuItems == null || !menuItems.Any())
-            {
-                return NotFound("No menu items found.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-           
-            return Ok(menuItems);
-        }
+        /// <summary>
+        /// Create a new menu item (Admin)
+        /// </summary>
         [HttpPost("CreateMenuItem")]
-        [ActionName("CreateMenuItem")]
-        public async Task<IActionResult> CreateMenuItem([FromBody] AdminCreateMenuItemDto dto)
+        [Authorize(Roles = "Admin")]
+        // ✅ FIXED: [FromForm] required so that IFormFile (ImageFile) can be bound from multipart/form-data
+        public async Task<IActionResult> CreateMenuItem([FromForm] AdminCreateMenuItemDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Invalid data"));
 
             if (dto.Price < 0)
-                return BadRequest("Price cannot be negative.");
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Price cannot be negative."));
 
             if (dto.PreparationTime < 0)
-                return BadRequest("Preparation time cannot be negative.");
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Preparation time cannot be negative."));
 
-            // Check for duplicate name
-            var existingItem = await muneItemService.SearchItemsByNameforAdmin(dto.NameEn);
+            var existingItem = await _menuItemService.SearchItemsByNameforAdmin(dto.NameEn);
             if (existingItem != null && existingItem.Any())
-                return Conflict("A menu item with the same name already exists.");
+                return Conflict(ApiResponseDto<object>.ErrorResponse("A menu item with the same name already exists."));
 
-            // Create item
-            var createdItem = await muneItemService.CreateItemMenu(dto);
+            var createdItem = await _menuItemService.CreateItemMenu(dto);
 
-            // MenuItemService حاليا بيرجع DTO بدون Id، فلازم نرجع entity أو نعدل DTO
-            return CreatedAtAction(nameof(GetMenuItemById), createdItem);
+            return StatusCode(StatusCodes.Status201Created,
+                ApiResponseDto<object>.SuccessResponse(createdItem, "Menu item created successfully"));
         }
 
-        [Produces("application/json")]
+        /// <summary>
+        /// Update menu item (Admin)
+        /// </summary>
         [HttpPut("UpdateMenuItem")]
-        [ActionName("UpdateMenuItem")]
-        public async Task<IActionResult> UpdateMenuItem([FromBody] AdminUpdateMenuItemDto dto)
+        [Authorize(Roles = "Admin")]
+        // ✅ FIXED: [FromForm] required so that IFormFile (ImageFile) can be bound from multipart/form-data
+        public async Task<IActionResult> UpdateMenuItem([FromForm] AdminUpdateMenuItemDto dto)
         {
             if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            if (dto.Id <= 0)
-            {
-                return BadRequest("Invalid menu item Id.");
-            }
-            if (dto.Price < 0)
-            {
-                return BadRequest("Price cannot be negative.");
-            }
-            if (dto.PreparationTime < 0)
-            {
-                return BadRequest("Preparation time cannot be negative.");
-            }
-            if (dto.Price > 0)
-            {
-                var existingItem = await muneItemService.GetMenuItemByIdAsync(dto.Id);
-                if (existingItem == null)
-                {
-                    return NotFound("Menu item not found.");
-                }
-            }
-            var updatedItem = await muneItemService.UpdateMenuItem(dto);
-            return Ok(updatedItem);
-        }
-        [Produces("application/json")]
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Invalid data"));
 
-        [HttpDelete("DeleteMenuItem/{id}")]
-        [ActionName("DeleteMenuItem")]
+            if (dto.Id <= 0)
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Invalid menu item Id."));
+
+            if (dto.Price < 0)
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Price cannot be negative."));
+
+            if (dto.PreparationTime < 0)
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Preparation time cannot be negative."));
+
+            var existingItem = await _menuItemService.GetMenuItemByIdAsync(dto.Id);
+            if (existingItem == null)
+                return NotFound(ApiResponseDto<object>.ErrorResponse("Menu item not found."));
+
+            var updatedItem = await _menuItemService.UpdateMenuItem(dto);
+            return Ok(ApiResponseDto<object>.SuccessResponse(updatedItem, "Menu item updated successfully"));
+        }
+
+        /// <summary>
+        /// Delete menu item (Admin)
+        /// </summary>
+        [HttpDelete("DeleteMenuItem/{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteMenuItem(int id)
         {
             if (id <= 0)
-            {
-                return BadRequest("Invalid menu item Id.");
-            }
-            var existingItem = await muneItemService.GetMenuItemByIdAsync(id);
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Invalid menu item Id."));
+
+            var existingItem = await _menuItemService.GetMenuItemByIdAsync(id);
             if (existingItem == null)
-            {
-                return NotFound("Menu item not found.");
-            }
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            
-            await muneItemService.DeleteMenuItem(id);
-            return NoContent();
+                return NotFound(ApiResponseDto<object>.ErrorResponse("Menu item not found."));
+
+            await _menuItemService.DeleteMenuItem(id);
+            return Ok(ApiResponseDto<bool>.SuccessResponse(true, "Menu item deleted successfully"));
+        }
+
+        // =====================================
+        // 🟢 CUSTOMER ENDPOINTS
+        // =====================================
+
+        /// <summary>
+        /// Get all menu items (Customer view)
+        /// </summary>
+        [HttpGet("GetAllMenuItemForCustomer")]
+        public async Task<IActionResult> GetMenuItemsForUser()
+        {
+            var menuItems = await _menuItemService.GetItemsforCustomer();
+            if (menuItems == null || !menuItems.Any())
+                return NotFound(ApiResponseDto<object>.ErrorResponse("No menu items found."));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItems));
+        }
+
+        /// <summary>
+        /// Get menu item by ID
+        /// </summary>
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetMenuItemById(int id)
+        {
+            var menuItem = await _menuItemService.GetMenuItemByIdAsync(id);
+            if (menuItem == null)
+                return NotFound(ApiResponseDto<object>.ErrorResponse("Menu item not found."));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItem));
+        }
+
+        /// <summary>
+        /// Get menu item by ID (Customer view)
+        /// </summary>
+        [HttpGet("customer/{id:int}")]
+        public async Task<IActionResult> GetMenuItemByIdForCustomer(int id)
+        {
+            var menuItem = await _menuItemService.GetMenuItemByIdAsyncForCustomer(id);
+            if (menuItem == null)
+                return NotFound(ApiResponseDto<object>.ErrorResponse("Menu item not found."));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItem));
+        }
+
+        /// <summary>
+        /// Get available menu items for customer
+        /// </summary>
+        [HttpGet("available-for-customer")]
+        public async Task<IActionResult> GetAvailableMenuItemsForCustomer()
+        {
+            var menuItems = await _menuItemService.GetAvailableItemsForCustmer();
+            if (menuItems == null || !menuItems.Any())
+                return NotFound(ApiResponseDto<object>.ErrorResponse("No available menu items found."));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItems));
+        }
+
+        /// <summary>
+        /// Get menu items added in last N days (Customer)
+        /// </summary>
+        [HttpGet("added-in-last-days/{days:int}")]
+        public async Task<IActionResult> GetMenuItemsAddedInLastNDays(int days)
+        {
+            var menuItems = await _menuItemService.GetItemsAddedInLastNDaysForCustomer(days);
+            if (menuItems == null || !menuItems.Any())
+                return NotFound(ApiResponseDto<object>.ErrorResponse($"No menu items found added in last {days} days."));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItems));
+        }
+
+        /// <summary>
+        /// Get menu items by price range
+        /// </summary>
+        [HttpGet("GetitemByPriceRange")]
+        public async Task<IActionResult> GetItemsByPriceRange([FromQuery] decimal minPrice = 50, [FromQuery] decimal maxPrice = 100)
+        {
+            var menuItems = await _menuItemService.GetItemsByPriceRangeForCustomer(minPrice, maxPrice);
+            if (menuItems == null || !menuItems.Any())
+                return NotFound(ApiResponseDto<object>.ErrorResponse("No menu items found in the specified price range."));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItems));
+        }
+
+        /// <summary>
+        /// Search menu items by name (Customer)
+        /// </summary>
+        [HttpGet("search/{name}")]
+        public async Task<IActionResult> SearchItemsByNameForCustomer(string name)
+        {
+            var menuItems = await _menuItemService.SearchItemsByNameforCustomer(name);
+            if (menuItems == null || !menuItems.Any())
+                return NotFound(ApiResponseDto<object>.ErrorResponse($"No menu items found matching: {name}"));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItems));
+        }
+
+        /// <summary>
+        /// Get items with preparation time less than specified minutes
+        /// </summary>
+        [HttpGet("preparation-time/{minutes:int}")]
+        public async Task<IActionResult> GetItemsWithPreparationTimeLessThan(int minutes)
+        {
+            var menuItems = await _menuItemService.GetItemsWithPreparationTimeLessThan(minutes);
+            if (menuItems == null || !menuItems.Any())
+                return NotFound(ApiResponseDto<object>.ErrorResponse($"No menu items found with preparation time less than {minutes} minutes."));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItems));
+        }
+
+        /// <summary>
+        /// Get items sorted by price
+        /// </summary>
+        [HttpGet("sort-by-price/{ascending:bool}")]
+        public async Task<IActionResult> GetItemsSortedByPrice(bool ascending)
+        {
+            var menuItems = await _menuItemService.GetItemsSortedByPrice(ascending);
+            if (menuItems == null || !menuItems.Any())
+                return NotFound(ApiResponseDto<object>.ErrorResponse("No menu items found."));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItems));
+        }
+
+        /// <summary>
+        /// Get items sorted by preparation time
+        /// </summary>
+        [HttpGet("sort-by-preparation-time/{ascending:bool}")]
+        public async Task<IActionResult> GetItemsSortedByPreparationTime(bool ascending)
+        {
+            var menuItems = await _menuItemService.GetItemsSortedByPreparationTime(ascending);
+            if (menuItems == null || !menuItems.Any())
+                return NotFound(ApiResponseDto<object>.ErrorResponse("No menu items found."));
+
+            return Ok(ApiResponseDto<object>.SuccessResponse(menuItems));
         }
     }
-    }
-
+}
 

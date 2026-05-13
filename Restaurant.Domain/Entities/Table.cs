@@ -17,3 +17,4 @@ namespace Restaurant.Domain.Entities
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     }
 }
+

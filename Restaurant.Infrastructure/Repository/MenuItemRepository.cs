@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Restaurant.Application.Contract;
 using Restaurant.Domain.Entities;
 using Restaurant.Infrastructure.DbContext;
@@ -6,7 +6,7 @@ using Restaurant.Infrastructure.DbContext;
 namespace Restaurant.Infrastructure.Repository
 {
     public class MenuItemRepository
-        : GenaricRepository<MenuItem>, IMenuItemRepo
+        : GenericRepository<MenuItem>, IMenuItemRepo
     {
         private readonly ApplicationDbContext _context;
 
@@ -148,5 +148,20 @@ namespace Restaurant.Infrastructure.Repository
                 .OrderByDescending(m => m.DailyOrderCount)
                 .FirstOrDefaultAsync();
         }
+        public async Task<(IEnumerable<MenuItem> Items, int TotalCount)> GetPaginatedItemsAsync(int skip, int take, string? search = null)
+        {
+            var query = _context.MenuItems.AsNoTracking().Where(m => !m.IsDeleted);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(m => m.NameEn.Contains(search) || m.NameAr.Contains(search));
+            }
+
+            var totalCount = await query.CountAsync();
+            var items = await query.OrderBy(m => m.NameEn).Skip(skip).Take(take).ToListAsync();
+
+            return (items, totalCount);
+        }
     }
 }
+

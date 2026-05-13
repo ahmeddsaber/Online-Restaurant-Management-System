@@ -45,17 +45,19 @@ namespace Restaurant.Infrastructure.UnitOfWork
         // ============================
         // Generic Repository
         // ============================
-        public IGenaricRepository<TEntity> Repository<TEntity>() where TEntity : BaseEntity
+        public IGenericRepository<TEntity> Repository<TEntity>() where TEntity : BaseEntity
         {
             var type = typeof(TEntity);
 
             if (!_repositories.ContainsKey(type))
             {
-                var repo = new GenaricRepository<TEntity>(_context);
-                _repositories[type] = repo;
+                var repositoryType = typeof(GenericRepository<>);
+                var repositoryInstance = Activator.CreateInstance(repositoryType.MakeGenericType(typeof(TEntity)), _context);
+
+                _repositories.Add(type, repositoryInstance);
             }
 
-            return (IGenaricRepository<TEntity>)_repositories[type];
+            return (IGenericRepository<TEntity>)_repositories[type];
         }
 
         // ============================
@@ -95,3 +97,4 @@ namespace Restaurant.Infrastructure.UnitOfWork
         }
     }
 }
+

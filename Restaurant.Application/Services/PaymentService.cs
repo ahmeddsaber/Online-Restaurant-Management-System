@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Restaurant.Application.Contract;
 using Restaurant.Application.DTOS.Common;
 using Restaurant.Application.DTOS.PayMent;
@@ -126,7 +126,7 @@ namespace Restaurant.Application.Services
             var order = await _unitOfWork.Order.GetById(payment.OrderId);
             if (order != null)
             {
-                order.Status = OrderStatus.Pending; // Change to Preparing or Ready
+                order.Status = OrderStatus.Preparing; // Change to Preparing
                 order.UpdatedAt = DateTime.UtcNow;
                 _unitOfWork.Order.Update(order);
             }
@@ -263,3 +263,4 @@ namespace Restaurant.Application.Services
         }
     }
 }
+

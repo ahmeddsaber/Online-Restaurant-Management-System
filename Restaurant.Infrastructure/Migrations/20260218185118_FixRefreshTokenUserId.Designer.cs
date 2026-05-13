@@ -933,3 +933,4 @@ namespace Restaurant.Infrastructure.Migrations
         }
     }
 }
+

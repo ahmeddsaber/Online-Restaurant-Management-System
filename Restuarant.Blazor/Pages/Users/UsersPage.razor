@@ -1,0 +1,312 @@
+@page "/users"
+@attribute [Authorize(Roles = "Admin")]
+@using Microsoft.AspNetCore.Authorization
+@using Restuarant.Blazor.Models.Users
+@using Restuarant.Blazor.Models.Common
+@inject IUserApiService UserApi
+@inject ILocalStorageService Storage
+
+<PageTitle>@(_isRtl ? "المستخدمون - Gourmet Hub" : "Users - Gourmet Hub")</PageTitle>
+
+<!-- STATUS MESSAGE -->
+@if (!string.IsNullOrEmpty(_statusMessage))
+{
+    <div class="alert @(_isError ? "alert-danger" : "alert-success") alert-dismissible fade show" role="alert">
+        @_statusMessage
+        <button type="button" class="btn-close" @onclick="() => _statusMessage = string.Empty"></button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold" style="color:#1a1a2e;">
+            @(_isRtl ? "إدارة المستخدمين" : "Users & Roles")
+        </h4>
+        <p class="text-muted mb-0">
+            @(_isRtl ? "إدارة حسابات المستخدمين والصلاحيات" : "Manage user accounts and permissions")
+        </p>
+    </div>
+    <button class="btn btn-primary fw-bold px-4" @onclick="OpenCreateDialog" style="border-radius:10px;">
+        <i class="bi bi-person-plus me-2"></i> @(_isRtl ? "إضافة مستخدم" : "Add User")
+    </button>
+</div>
+
+<!-- SEARCH -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-center">
+            <div class="col-12 col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" @bind="_search" @bind:event="oninput" placeholder="@(_isRtl ? "بحث..." : "Search users...")" />
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <select class="form-select" @bind="_roleFilter">
+                    <option value="">@(_isRtl ? "الكل" : "All Roles")</option>
+                    @foreach (var role in _roles)
+                    {
+                        <option value="@role">@role</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- USERS TABLE -->
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+        @if (_isLoading)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">@(_isRtl ? "المستخدم" : "User")</th>
+                            <th>@(_isRtl ? "البريد" : "Email")</th>
+                            <th>@(_isRtl ? "الهاتف" : "Phone")</th>
+                            <th>@(_isRtl ? "الأدوار" : "Roles")</th>
+                            <th>@(_isRtl ? "الحالة" : "Status")</th>
+                            <th>@(_isRtl ? "تاريخ التسجيل" : "Joined")</th>
+                            <th class="pe-4 text-end">@(_isRtl ? "الإجراءات" : "Actions")</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!FilteredUsers.Any())
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="bi bi-people fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                                    @(_isRtl ? "لا توجد مستخدمون" : "No users found")
+                                </td>
+                            </tr>
+                        }
+                        @foreach (var user in FilteredUsers)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width:36px; height:36px; font-weight:bold;">
+                                            @(string.IsNullOrEmpty(user.FullName) ? "?" : user.FullName[0].ToString().ToUpper())
+                                        </div>
+                                        <span class="fw-bold">@user.FullName</span>
+                                    </div>
+                                </td>
+                                <td>@user.Email</td>
+                                <td>@(user.PhoneNumber ?? "—")</td>
+                                <td>
+                                    <div class="d-flex gap-1 flex-wrap">
+                                        @foreach (var role in user.Roles)
+                                        {
+                                            <span class="badge rounded-pill @GetRoleClass(role)">@role</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge @(user.IsActive ? "bg-success text-white" : "bg-danger text-white")">
+                                        @(user.IsActive ? (_isRtl ? "نشط" : "Active") : (_isRtl ? "موقوف" : "Inactive"))
+                                    </span>
+                                </td>
+                                <td><small class="text-muted">@user.CreatedAt.ToString("MMM dd, yyyy")</small></td>
+                                <td class="pe-4 text-end">
+                                    <button class="btn btn-sm btn-outline-info" title="Assign Roles"><i class="bi bi-shield-lock"></i></button>
+                                    <button class="btn btn-sm @(user.IsActive ? "btn-outline-warning" : "btn-outline-success") ms-1"
+                                            title="@(user.IsActive ? "Deactivate" : "Activate")"
+                                            @onclick="() => ToggleStatus(user)">
+                                        <i class="bi @(user.IsActive ? "bi-slash-circle" : "bi-check-circle")"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger ms-1" title="Delete" @onclick="() => DeleteUser(user.Id)"><i class="bi bi-trash"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- CREATE USER DIALOG -->
+@if (_createDialogOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5); overflow-y: auto;">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">
+                        @(_isRtl ? "إضافة مستخدم جديد" : "Add New User")
+                    </h5>
+                    <button type="button" class="btn-close" @onclick="() => _createDialogOpen = false"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <EditForm Model="_createModel" OnValidSubmit="SaveUser">
+                        <DataAnnotationsValidator />
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">@(_isRtl ? "الاسم الأول" : "First Name") <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="_createModel.FirstName" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">@(_isRtl ? "اسم العائلة" : "Last Name") <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="_createModel.LastName" class="form-control" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">@(_isRtl ? "البريد الإلكتروني" : "Email") <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="_createModel.Email" type="email" class="form-control" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">@(_isRtl ? "كلمة المرور" : "Password") <span class="text-danger">*</span></label>
+                                <InputText @bind-Value="_createModel.Password" type="password" class="form-control" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">@(_isRtl ? "رقم الهاتف" : "Phone")</label>
+                                <InputText @bind-Value="_createModel.PhoneNumber" class="form-control" />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">@(_isRtl ? "الأدوار" : "Roles")</label>
+                                <select class="form-select" multiple @onchange="OnRolesChanged" style="height: 100px;">
+                                    @foreach (var role in _roles)
+                                    {
+                                        <option value="@role">@role</option>
+                                    }
+                                </select>
+                                <small class="text-muted">Hold CTRL (or CMD) to select multiple roles.</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                            <button type="button" class="btn btn-light" @onclick="() => _createDialogOpen = false">@(_isRtl ? "إلغاء" : "Cancel")</button>
+                            <button type="submit" class="btn btn-primary px-4" disabled="@_isSaving">
+                                @if (_isSaving) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                @(_isRtl ? "حفظ" : "Save")
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<UserDto> _users = new();
+    private List<string> _roles = new();
+    private bool _isLoading = true;
+    private bool _isRtl = false;
+    private string _search = string.Empty;
+    private string _roleFilter = string.Empty;
+    private bool _createDialogOpen = false;
+    private bool _isSaving = false;
+    private CreateUserRequest _createModel = new();
+    private List<string> _selectedRoles = new();
+
+    private string _statusMessage = "";
+    private bool _isError = false;
+
+    private IEnumerable<UserDto> FilteredUsers => _users
+        .Where(u => (string.IsNullOrEmpty(_search) ||
+                     u.FullName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+                     u.Email.Contains(_search, StringComparison.OrdinalIgnoreCase)) &&
+                    (string.IsNullOrEmpty(_roleFilter) || u.Roles.Contains(_roleFilter)));
+
+    protected override async Task OnInitializedAsync()
+    {
+        var c = await Storage.GetItemAsync("culture");
+        _isRtl = c == "ar";
+        try {
+            _roles = await UserApi.GetAllRolesAsync();
+        } catch {}
+        await LoadUsers();
+    }
+
+    async Task LoadUsers()
+    {
+        _isLoading = true;
+        try {
+            var result = await UserApi.GetAllUsersAsync(1, 100);
+            _users = result?.Items ?? new List<UserDto>();
+        } catch {}
+        _isLoading = false;
+    }
+
+    void OpenCreateDialog()
+    {
+        _createModel = new CreateUserRequest();
+        _selectedRoles = new List<string>();
+        _createDialogOpen = true;
+    }
+
+    void OnRolesChanged(ChangeEventArgs e)
+    {
+        if (e.Value is IEnumerable<string> selected)
+        {
+            _selectedRoles = selected.ToList();
+        }
+    }
+
+    async Task ToggleStatus(UserDto user)
+    {
+        var ok = await UserApi.ToggleUserStatusAsync(user.Id);
+        if (ok)
+        {
+            user.IsActive = !user.IsActive;
+            ShowMessage(_isRtl ? "تم تحديث الحالة" : "Status updated", false);
+        }
+    }
+
+    async Task DeleteUser(string id)
+    {
+        var ok = await UserApi.DeleteUserAsync(id);
+        if (ok)
+        {
+            _users.RemoveAll(u => u.Id == id);
+            ShowMessage(_isRtl ? "تم الحذف" : "User deleted", false);
+        }
+    }
+
+    async Task SaveUser()
+    {
+        _isSaving = true;
+        _createModel.Roles = _selectedRoles;
+        var ok = await UserApi.CreateUserAsync(_createModel);
+        if (ok)
+        {
+            ShowMessage(_isRtl ? "تم إنشاء الحساب" : "User created", false);
+            _createDialogOpen = false;
+            await LoadUsers();
+        }
+        else
+        {
+            ShowMessage(_isRtl ? "فشل الإنشاء" : "Creation failed", true);
+        }
+        _isSaving = false;
+    }
+
+    string GetRoleClass(string role) => role switch
+    {
+        "Admin" => "bg-danger text-white",
+        "Manager" => "bg-primary text-white",
+        "Staff" => "bg-warning text-dark",
+        "Customer" => "bg-success text-white",
+        _ => "bg-secondary text-white"
+    };
+
+    private async void ShowMessage(string msg, bool isError)
+    {
+        _statusMessage = msg;
+        _isError = isError;
+        StateHasChanged();
+        await Task.Delay(3000);
+        _statusMessage = "";
+        StateHasChanged();
+    }
+}

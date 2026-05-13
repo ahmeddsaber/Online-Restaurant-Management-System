@@ -1,173 +1,203 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Restaurant.Application.DTOS.Admin;
+using Restaurant.Application.DTOS.Common;
 using Restaurant.Application.DTOS.Manager;
 using Restaurant.Application.Interfaces;
+using Asp.Versioning;
 
 namespace Restaurant.API.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-
-    public class MenuCategoryController : ControllerBase
+    /// <summary>
+    /// Menu category management
+    /// </summary>
+    [ApiVersion("1.0")]
+    public class MenuCategoryController : BaseController
     {
         private readonly IMenuCategoryService _menuCategoryService;
+     
 
         public MenuCategoryController(IMenuCategoryService menuCategoryService)
         {
             _menuCategoryService = menuCategoryService;
+        
         }
 
         // =====================================
         // 🔐 ADMIN ENDPOINTS
         // =====================================
 
-        [HttpGet("GetAllMenuCategories")]
-       [Authorize(Roles = "Admin")]
+        /// <summary>
+        /// Get all menu categories (Admin)
+        /// </summary>
+        [HttpGet("all")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllMenuCategories()
         {
             var categories = await _menuCategoryService.GetAllCategories();
-            if (categories == null || !categories.Any())
-                return NotFound(new { success = false, message = "No categories found" });
+            if (!categories.Any())
+                return Error("No categories found", statusCode: 404);
 
-            return Ok(new { success = true, data = categories });
+            return Success(categories);
         }
 
+        /// <summary>
+        /// Get active menu categories (Admin)
+        /// </summary>
         [HttpGet("GetActiveMenuCategories")]
-        [Authorize(Roles = "Admin")]
+       // [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetActiveMenuCategories()
         {
             var categories = await _menuCategoryService.GetActiveCategoriesAsync();
             if (categories == null || !categories.Any())
-                return NotFound(new { success = false, message = "No active categories found" });
+                return NotFound(ApiResponseDto<object>.ErrorResponse("No active categories found"));
 
-            return Ok(new { success = true, data = categories });
+            return Ok(ApiResponseDto<IEnumerable<AdminCategoryDto>>.SuccessResponse(categories));
         }
+
+        /// <summary>
+        /// Get active menu categories for customer view (Admin)
+        /// </summary>
         [HttpGet("GetActiveMenuCategoriesForCustomer")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetActiveMenuCategoriesForCustomer()
         {
             var categories = await _menuCategoryService.GetActiveCategoriesforCustomerAsync();
             if (categories == null || !categories.Any())
-                return NotFound(new { success = false, message = "No  categories found" });
+                return NotFound(ApiResponseDto<object>.ErrorResponse("No categories found"));
 
-            return Ok(new { success = true, data = categories });
+            return Ok(ApiResponseDto<object>.SuccessResponse(categories));
         }
 
+        /// <summary>
+        /// Get deleted menu categories (Admin)
+        /// </summary>
         [HttpGet("GetDeletedMenuCategories")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetDeletedMenuCategories()
         {
             var categories = await _menuCategoryService.GetDeletedCategoriesAsync();
             if (categories == null || !categories.Any())
-                return NotFound(new { success = false, message = "No deleted categories found" });
+                return NotFound(ApiResponseDto<object>.ErrorResponse("No deleted categories found"));
 
-            return Ok(new { success = true, data = categories });
+            return Ok(ApiResponseDto<object>.SuccessResponse(categories));
         }
 
+        /// <summary>
+        /// Get menu category by ID (Admin)
+        /// </summary>
         [HttpGet("GetMenuCategoryById/{id:int}")]
-       [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetMenuCategoryById(int id)
         {
             if (id <= 0)
-                return BadRequest(new { success = false, message = "Invalid category Id" });
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Invalid category Id"));
 
             var category = await _menuCategoryService.GetCategoryById(id);
             if (category == null)
-                return NotFound(new { success = false, message = "Category not found" });
+                return NotFound(ApiResponseDto<object>.ErrorResponse("Category not found"));
 
-            return Ok(new { success = true, data = category });
+            return Ok(ApiResponseDto<AdminCategoryDto>.SuccessResponse(category));
         }
 
+        /// <summary>
+        /// Get menu category with its items (Admin)
+        /// </summary>
         [HttpGet("GetMenuCategoryWithItems/{id:int}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetMenuCategoryWithItems(int id)
         {
             if (id <= 0)
-                return BadRequest(new { success = false, message = "Invalid category Id" });
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Invalid category Id"));
 
             var category = await _menuCategoryService.GetCategoryByIdWithItemsAsync(id);
             if (category == null)
-                return NotFound(new { success = false, message = "Category not found" });
+                return NotFound(ApiResponseDto<object>.ErrorResponse("Category not found"));
 
-            return Ok(new { success = true, data = category });
+            return Ok(ApiResponseDto<object>.SuccessResponse(category));
         }
 
+        /// <summary>
+        /// Search menu categories by name (Admin)
+        /// </summary>
         [HttpGet("SearchMenuCategory")]
-       [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> SearchMenuCategory([FromQuery] string name)
         {
             if (string.IsNullOrWhiteSpace(name))
-                return BadRequest(new { success = false, message = "Search text is required" });
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Search text is required"));
 
             var categories = await _menuCategoryService.SearchAdminCategory(name);
             if (categories == null)
-                return NotFound(new { success = false, message = "Category not found" });
+                return NotFound(ApiResponseDto<object>.ErrorResponse("Category not found"));
 
-            return Ok(new { success = true, data = categories });
+            return Ok(ApiResponseDto<object>.SuccessResponse(categories));
         }
 
-        [HttpPost("CreateMenuCategory")]
+        /// <summary>
+        /// Create a new menu category (Admin)
+        /// </summary>
+        [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateMenuCategory([FromBody] AdminCreateCategoryDto dto)
+        public async Task<IActionResult> CreateMenuCategory([FromForm] AdminCreateCategoryDto dto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(new { success = false, message = "Invalid data", errors = ModelState });
-
             var category = await _menuCategoryService.CreateCategory(dto);
 
             if (category == null)
-                return BadRequest(new { success = false, message = "Category name cannot be empty" });
+                return Error("Category name cannot be empty");
 
-            // ارجع 201 + object الجديد
-            return StatusCode(StatusCodes.Status201Created, new
-            {
-                success = true,
-                message = "Category created successfully",
-                data = category
-            });
+            return Created(category);
         }
 
-
+        /// <summary>
+        /// Update an existing menu category (Admin)
+        /// </summary>
         [HttpPut("UpdateMenuCategory")]
-         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateMenuCategory([FromBody] AdminUpdateCategoryDto dto)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateMenuCategory([FromForm] AdminUpdateCategoryDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(new { success = false, message = "Invalid data", errors = ModelState });
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Invalid data"));
 
             var updatedCategory = await _menuCategoryService.UpdateCategory(dto);
             if (updatedCategory == null)
-                return BadRequest(new { success = false, message = "Category update failed" });
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Category update failed"));
 
-            return Ok(new { success = true, message = "Category updated successfully", data = updatedCategory });
+            return Ok(ApiResponseDto<AdminCategoryDto>.SuccessResponse(updatedCategory, "Category updated successfully"));
         }
 
+        /// <summary>
+        /// Delete a menu category (Admin)
+        /// </summary>
         [HttpDelete("DeleteMenuCategory/{id:int}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteMenuCategory(int id)
         {
             if (id <= 0)
-                return BadRequest(new { success = false, message = "Invalid category Id" });
+                return BadRequest(ApiResponseDto<object>.ErrorResponse("Invalid category Id"));
 
             await _menuCategoryService.DeleteCategory(id);
-            return Ok(new { success = true, message = "Category deleted successfully" });
+            return Ok(ApiResponseDto<bool>.SuccessResponse(true, "Category deleted successfully"));
         }
 
         // =====================================
         // 🔐 MANAGER ENDPOINT
         // =====================================
 
+        /// <summary>
+        /// Get category sales data (Manager)
+        /// </summary>
         [HttpGet("GetCategorySales")]
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> GetCategorySales()
         {
             var result = await _menuCategoryService.GetCategorySalesAsync();
             if (result == null || !result.Any())
-                return NotFound(new { success = false, message = "No sales data found" });
+                return NotFound(ApiResponseDto<object>.ErrorResponse("No sales data found"));
 
-            return Ok(new { success = true, data = result });
+            return Ok(ApiResponseDto<IEnumerable<CategorySalesDto>>.SuccessResponse(result));
         }
     }
 }
+
+ 

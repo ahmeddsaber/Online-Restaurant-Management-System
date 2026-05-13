@@ -119,4 +119,36 @@ namespace Restaurant.Application.DTOS.Auth
         [Required]
         public string RefreshToken { get; set; } = string.Empty;
     }
+
+    public class ForgotPasswordDto
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+    }
+
+    public class ResetPasswordDto
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        public string Token { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "New password is required")]
+        [StringLength(100, MinimumLength = 6)]
+        public string NewPassword { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Confirm password is required")]
+        [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
+        public string ConfirmNewPassword { get; set; } = string.Empty;
+    }
+
+    public class ForgotPasswordResponseDto
+    {
+        public string Message { get; set; } = string.Empty;
+        public string? ResetToken { get; set; }  // For testing only - remove in production
+    }
 }
+

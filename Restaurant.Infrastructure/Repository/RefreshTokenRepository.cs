@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Restaurant.Infrastructure.Repository
 {
-    public class RefreshTokenRepository : GenaricRepository<RefreshToken>, IRefreshTokenRepo
+    public class RefreshTokenRepository : GenericRepository<RefreshToken>, IRefreshTokenRepo
     {
         private readonly ApplicationDbContext _context;
 
@@ -82,3 +82,4 @@ namespace Restaurant.Infrastructure.Repository
         }
     }
 }
+

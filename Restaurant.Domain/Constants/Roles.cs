@@ -1,9 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Restaurant.Domain.Constants
 {
     public static class Roles
@@ -11,6 +5,8 @@ namespace Restaurant.Domain.Constants
         public const string Admin = "Admin";
         public const string Manager = "Manager";
         public const string Staff = "Staff";
+        public const string Cashier = "Cashier";
+        public const string Waiter = "Waiter";
         public const string Customer = "Customer";
     }
 }

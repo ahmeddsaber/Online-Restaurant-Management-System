@@ -1,4 +1,6 @@
-﻿using MapsterMapper;
+using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
+using Restaurant.Application.DTOS.Common;
 using Restaurant.Application.Contract;
 using Restaurant.Application.DTOS.Admin;
 using Restaurant.Application.DTOS.Customer;
@@ -35,10 +37,30 @@ namespace Restaurant.Application.Services
             return Task.FromResult(_mapper.Map<IEnumerable<AdminOrderDto>>(orders));
 
         }
-        public async Task<IEnumerable<AdminOrderDto>> GetAllOrdersForAdminAsync()
+        public async Task<PagedResultDto<AdminOrderDto>> GetAllOrdersForAdminAsync(PaginationDto pagination)
         {
-            var orders = await _unitOfWork.Order.GetAllOrdersAsync();
-            return _mapper.Map<IEnumerable<AdminOrderDto>>(orders);
+            // ✅ FIXED: Use GetAllOrdersAsync() which includes Customer, Table, and OrderItems
+            // GetAll() returns raw IQueryable with no navigation properties loaded, causing null
+            // CustomerName, empty Items lists, and potential mapper runtime errors.
+            var allOrders = await _unitOfWork.Order.GetAllOrdersAsync();
+
+            var totalCount = allOrders.Count();
+
+            var orders = allOrders
+                .OrderByDescending(o => o.OrderDate)
+                .Skip(pagination.Skip)
+                .Take(pagination.PageSize)
+                .ToList();
+
+            var dtos = _mapper.Map<IEnumerable<AdminOrderDto>>(orders).ToList();
+
+            return new PagedResultDto<AdminOrderDto>
+            {
+                Items = dtos,
+                TotalCount = totalCount,
+                PageNumber = pagination.PageNumber,
+                PageSize = pagination.PageSize
+            };
         }
 
         public async Task<AdminOrderDto?> GetOrderByIdForAdminAsync(int orderId)
@@ -65,14 +87,15 @@ namespace Restaurant.Application.Services
             var order = await _unitOfWork.Order.GetOrderByIdAsync(orderId);
             if (order == null)
                 return false;
-            if (order.Id == orderId)
-            {
+
+            // ✅ FIXED: Previous code had `if (order.Id == orderId) return false;`
+            // which is ALWAYS true (we just fetched by that ID), so deletion was impossible.
+            // Business rule: only allow deletion of Cancelled or Delivered orders.
+            if (order.Status != Domain.Enums.OrderStatus.Cancelled &&
+                order.Status != Domain.Enums.OrderStatus.Delivered)
                 return false;
 
-            }
-                
-
-            _unitOfWork.Order.Delete(orderId);
+            await _unitOfWork.Order.Delete(orderId);
             return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
@@ -80,10 +103,28 @@ namespace Restaurant.Application.Services
         // MANAGER FUNCTIONS
         // ========================================================================
 
-        public async Task<IEnumerable<ManagerOrderDto>> GetAllOrdersForManagerAsync()
+        public async Task<PagedResultDto<ManagerOrderDto>> GetAllOrdersForManagerAsync(PaginationDto pagination)
         {
-            var orders = await _unitOfWork.Order.GetAllOrdersAsync();
-            return _mapper.Map<IEnumerable<ManagerOrderDto>>(orders);
+            // ✅ FIXED: Use GetAllOrdersAsync() which includes navigation properties
+            var allOrders = await _unitOfWork.Order.GetAllOrdersAsync();
+
+            var totalCount = allOrders.Count();
+
+            var orders = allOrders
+                .OrderByDescending(o => o.OrderDate)
+                .Skip(pagination.Skip)
+                .Take(pagination.PageSize)
+                .ToList();
+
+            var dtos = _mapper.Map<IEnumerable<ManagerOrderDto>>(orders).ToList();
+
+            return new PagedResultDto<ManagerOrderDto>
+            {
+                Items = dtos,
+                TotalCount = totalCount,
+                PageNumber = pagination.PageNumber,
+                PageSize = pagination.PageSize
+            };
         }
 
         public async Task<ManagerOrderDto?> GetOrderByIdForManagerAsync(int orderId)
@@ -302,3 +343,4 @@ namespace Restaurant.Application.Services
         }
     }
 }
+

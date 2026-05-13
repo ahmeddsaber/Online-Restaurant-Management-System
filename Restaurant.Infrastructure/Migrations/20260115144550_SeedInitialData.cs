@@ -503,3 +503,4 @@ namespace Restaurant.Infrastructure.Migrations
         }
     }
 }
+
